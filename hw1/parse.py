@@ -4,6 +4,7 @@ import tensorflow as tf
 from os import listdir
 from os.path import isfile, join
 
+
 mypath = 'Holmes_Training_Data/'
 
 #not handling Mr. ,Mrs. !!!!
@@ -12,10 +13,11 @@ mypath = 'Holmes_Training_Data/'
 #remove all marks
 
 
-def read_data(mypath):
+def read_data(mypath, small = False):
 	num = 0
 	files = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-	sentences = []
+	train_data = []
+	labels = []
 
 	# print files
 	for f in files[:]:
@@ -61,6 +63,12 @@ def read_data(mypath):
 
 				stop_line = len(lines) - length_eff // 5 * 2
 
+				if small:
+					head_count = length_eff // 35 * 17
+
+					stop_line = len(lines) - length_eff // 35 * 17
+
+
   		count = 0
 
 		# print sentence
@@ -104,8 +112,13 @@ def read_data(mypath):
 						if not i - pivot_pre > 4:
 							pivot_pre = i+1 # !!!!!!!!!!!!!
 							continue
-						sentences.append(map(str,"<start> <start>".split()) + words[pivot_pre : i+1] + map(str,"<end> <end>".split()))
-						count += 1
+						temp = (map(str,"<start> <start>".split()) + words[pivot_pre : i+1] + map(str,"<end> <end>".split()))
+
+						chop_idx = np.random.randint( len(temp)-5 , size=len(temp)//5)
+						for idc in chop_idx:
+							train_data.append(temp[idc :idc+5])
+							labels.append(temp[idc+1 :idc+6])
+							count += 1
 						pivot_pre = i+1
 
 				i += 1
@@ -114,29 +127,35 @@ def read_data(mypath):
 			# print words[i-1]
 			# raw_input()
 		print f, count
-		print len(sentences)
-		return sentences
+		print len(train_data)
 
 
 
-	chopped = []
-	f_out = open("cut.txt", 'w') 
-	# f_out_5 = open("chopped_5.txt", 'w') 
-	for st in sentences:
+	f_out_t = open("train.txt", 'w') 
+	f_out_l = open("label.txt", 'w') 
+	for st in train_data:
 		for wd in st:
-			f_out.write(wd + ' ')
+			f_out_t.write(wd + ' ')
 
-		# for idx in range(0,len(st)-4):
-		# 	chopped.append(st[idx:idx+5])
+		f_out_t.write('\n')
 
-		# 	for wd in st[idx:idx+5]:
-		# 		f_out_5.write(wd + ' ')
-		# 	f_out_5.write('\n')
-		f_out.write('\n')
-	print sentences
-	print len(sentences)
-	raw_input()
+	for st in labels:
+		for wd in st:
+			f_out_l.write(wd + ' ')
+
+		f_out_l.write('\n')
+	# print sentences
+	print len(labels)
+	# raw_input()
+
+	return train_data, labels
 
 
-read_data(mypath)
 
+train_data, labels = read_data(mypath, small = True)
+
+print train_data
+raw_input()
+
+print labels
+raw_input()
