@@ -22,17 +22,20 @@ def read_data(mypath, small = False):
 					break
 				if len(line) < 3:
 					continue
-				if line[-3] not in ['.', '!', '?',"\""] and len(lines[i+1]) < 3:
-					continue
+				if line[-3] not in ['.', '!', '?',"\""]:
+					if i >= len(lines):
+						continue
+					if len(lines[i+1]) < 3:
+						continue
 				sentence += line[:-2] + ' '
   			if line[0:21] == '*END*THE SMALL PRINT!':
   				started = True
 				length_eff = len(lines) - i
-				head_count = length_eff // 5 * 2
-				stop_line = len(lines) - length_eff // 5 * 2
+				head_count = int( float(length_eff) / 5 * 2)
+				stop_line = len(lines) - int( float(length_eff) / 5 * 2)
 				if small:
-					head_count = length_eff // 55 * 27
-					stop_line = len(lines) - length_eff // 55 * 27
+					head_count = int( float(length_eff) / 155 * 77)
+					stop_line = len(lines) - int( float(length_eff) / 155 * 77)
   		count = 0
 		words = map(str,sentence.split())
 		first_sentence = True

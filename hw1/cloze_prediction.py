@@ -38,7 +38,7 @@ num_epoch = 2
 #file_path
 mypath = 'Holmes_Training_Data/'
 logdir = "./save/"
-# data_file_path = "train.txt"
+data_file_path = "train.txt"
 #call function
 
 train_datasets, train_labelsets = read_data(mypath, small = True)
