@@ -39,6 +39,7 @@ num_epoch = 2
 mypath = 'Holmes_Training_Data/'
 logdir = "./save/"
 data_file_path = "train.txt"
+read_data(mypath, small = True)
 
 #call function
 data_file = open(data_file_path)

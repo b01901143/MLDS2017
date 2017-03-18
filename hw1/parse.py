@@ -62,7 +62,11 @@ def read_data(mypath, small = False):
 							continue
 						temp = (map(str,"<start> <start>".split()) + words[pivot_pre : i+1] + map(str,"<end> <end>".split()))
 
-						chop_idx = np.random.randint( len(temp)-5 , size=len(temp)//5)
+						chop_idx = []
+						while(len(chop_idx) < len(temp)//5):
+							i_new = np.random.randint( len(temp)-5 )
+							if i_new not in chop_idx:
+								chop_idx.append(i_new)
 						for idc in chop_idx:
 							train_data.append(temp[idc :idc+5])
 							labels.append(temp[idc+1 :idc+6])
@@ -71,4 +75,25 @@ def read_data(mypath, small = False):
 				i += 1
 				if i >= len(words):
 					break
+		# print f, count
+		# print len(train_data)
+
+
+
+	f_out_t = open("train.txt", 'w') 
+	f_out_l = open("label.txt", 'w') 
+	for st in train_data:
+		for wd in st:
+			f_out_t.write(wd + ' ')
+
+		f_out_t.write('\n')
+
+	for st in labels:
+		for wd in st:
+			f_out_l.write(wd + ' ')
+
+		f_out_l.write('\n')
+	# print sentences
+	print "Data parsed to train.txt & label.txt, size = " + str(len(labels))
+	# raw_input()
 	return train_data, labels
