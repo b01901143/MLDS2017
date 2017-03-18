@@ -31,8 +31,8 @@ def read_data(mypath, small = False):
 				head_count = length_eff // 5 * 2
 				stop_line = len(lines) - length_eff // 5 * 2
 				if small:
-					head_count = length_eff // 35 * 17
-					stop_line = len(lines) - length_eff // 35 * 17
+					head_count = length_eff // 55 * 27
+					stop_line = len(lines) - length_eff // 55 * 27
   		count = 0
 		words = map(str,sentence.split())
 		first_sentence = True
@@ -55,6 +55,9 @@ def read_data(mypath, small = False):
 						pivot_pre = i+1
 					else:
 						words[i] = words[i].replace(words[i][-1], "")
+						if words[i] == "":
+							del words[i]
+							continue
 						if not words[pivot_pre].isalpha():
 							continue
 						if not i - pivot_pre > 4:

@@ -38,19 +38,50 @@ num_epoch = 2
 #file_path
 mypath = 'Holmes_Training_Data/'
 logdir = "./save/"
-data_file_path = "train.txt"
-read_data(mypath, small = True)
+# data_file_path = "train.txt"
+#call function
+
+train_datasets, train_labelsets = read_data(mypath, small = True)
+test_datasets = get_questions()
+
+words_ids = build_dictionary(train_datasets+train_labelsets, num_vocabulary)
+
+train_datasets_id = label_id(train_datasets, words_ids)
+train_labelsets_id = label_id(train_labelsets, words_ids)
+test_datasets_id = label_id(test_datasets, words_ids)
+
+end_id = words_ids["<end>"]
+
+set_size = len(train_datasets_id)
+
+train_data = train_datasets_id[ :(set_size//5)*4]
+train_labels = train_labelsets_id[ :(set_size//5)*4]
+
+valid_data = train_datasets_id[(set_size//5)*4: ]
+valid_labels = train_labelsets_id[(set_size//5)*4: ]
+
+test_data = test_datasets_id
+
+###### correctness check ######
+# print train_data[0:5]
+# print train_labels[0:5]
+# print valid_data[0:5]
+# print valid_labels[0:5]
+# raw_input()
+###### correctness check ######
 
 #call function
-data_file = open(data_file_path)
-words_square = make_words_square(data_file)
-_, train_datasets, valid_datasets, test_datasets = make_datasets(words_square)
-words_ids = build_dictionary(train_datasets, num_vocabulary)
-train_datasets_id, valid_datasets_id, test_datasets_id = label_id(train_datasets, words_ids), label_id(valid_datasets, words_ids), label_id(test_datasets, words_ids)
-end_id = words_ids["<end>"]
-train_data, train_labels, num_train_data = generate_pairs(train_datasets_id, end_id)
-valid_data, valid_labels, num_valid_data = generate_pairs(valid_datasets_id, end_id)
-test_data, test_labels, num_test_data = generate_pairs(test_datasets_id, end_id)
+# data_file = open(data_file_path)
+# words_square = make_words_square(data_file)
+# _, train_datasets, valid_datasets, test_datasets = make_datasets(words_square)
+# words_ids = build_dictionary(train_datasets, num_vocabulary)
+# train_datasets_id, valid_datasets_id, test_datasets_id = label_id(train_datasets, words_ids), label_id(valid_datasets, words_ids), label_id(test_datasets, words_ids)
+# end_id = words_ids["<end>"]
+# train_data, train_labels, num_train_data = generate_pairs(train_datasets_id, end_id)
+# valid_data, valid_labels, num_valid_data = generate_pairs(valid_datasets_id, end_id)
+# test_data, test_labels, num_test_data = generate_pairs(test_datasets_id, end_id)
+
+
 
 #3. Defining
 #utilities
