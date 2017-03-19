@@ -10,7 +10,7 @@ restore = sys.argv[1]
 
 #1. Setting
 #batch_size
-train_batch_size = valid_batch_size = 40
+train_batch_size = valid_batch_size = 20
 test_batch_size = 5
 
 #input_layer
@@ -219,8 +219,8 @@ def feed_dict_to_model(session, model, is_training, data_batches, label_batches,
 		track_dict = session.run(fetch_dict, feed_dict)
 		total_cost_per_epoch += track_dict["cost"]
 		total_num_steps_per_epoch += num_steps
-		if(batch % 1000 == 0):
-			print "Batch: ", batch, "Perplexity: ", np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
+		if(batch % 100 == 0):
+			print "Batch: ", batch, "/", num_batch, "Perplexity: ", np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
 	return np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
 
 #6. Graphing
@@ -270,12 +270,12 @@ with tf.Graph().as_default():
 			print "Now is training"
 			train_data_batches, train_labels_batches, train_num_batch = generate_batches(train_data, train_labels, train_batch_size)
 			average_cost_per_epoch = feed_dict_to_model(session, train_model, True, train_data_batches, train_labels_batches, train_num_batch)
-			print "Epoch: ", epoch, "Perplexity: ", average_cost_per_epoch
+			print "Epoch: ", epoch, "/", num_epoch, "Perplexity: ", average_cost_per_epoch
 			#validation
 			print "Now is validation"
 			valid_data_batches, valid_labels_batches, valid_num_batch = generate_batches(valid_data, valid_labels, valid_batch_size)
 			average_cost_per_epoch = feed_dict_to_model(session, valid_model, False, valid_data_batches, valid_labels_batches, valid_num_batch)
-			print "Epoch: ", epoch, "Perplexity: ", average_cost_per_epoch
+			print "Epoch: ", epoch, "/", num_epoch, "Perplexity: ", average_cost_per_epoch
 		save_path = saver.save(session, "./save/model.ckpt")
   		print("Model saved in file: %s" % save_path)
 

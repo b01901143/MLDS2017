@@ -31,8 +31,8 @@ def read_data(mypath, small = False):
   			if line[0:21] == '*END*THE SMALL PRINT!':
   				started = True
 				length_eff = len(lines) - i
-				head_count = int( float(length_eff) / 5 * 2)
-				stop_line = len(lines) - int( float(length_eff) / 5 * 2)
+				head_count = int( float(length_eff) / 5 * 1)
+				stop_line = len(lines) - int( float(length_eff) / 5 * 1)
 				if small:
 					head_count = int( float(length_eff) / 155 * 77)
 					stop_line = len(lines) - int( float(length_eff) / 155 * 77)
@@ -69,7 +69,7 @@ def read_data(mypath, small = False):
 						temp = (map(str,"<start> <start>".split()) + words[pivot_pre : i+1] + map(str,"<end> <end>".split()))
 
 						chop_idx = []
-						while(len(chop_idx) < len(temp)//5):
+						while(len(chop_idx) < len(temp)//3):
 							i_new = np.random.randint( len(temp)-5 )
 							if i_new not in chop_idx:
 								chop_idx.append(i_new)
