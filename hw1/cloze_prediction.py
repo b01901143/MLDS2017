@@ -1,10 +1,12 @@
 #packages
-import sklearn
+import sys
 import numpy as np
 import tensorflow as tf
 from parse import *
 from parse_question import *
 from preprocessing import *
+
+restore = sys.argv[1]
 
 #1. Setting
 #batch_size
@@ -13,7 +15,6 @@ test_batch_size = 1
 
 #input_layer
 num_steps = 5
-num_embedding = 256
 num_vocabulary = 12000
 
 #dropout_layer
@@ -22,7 +23,7 @@ output_keep_prob = 1.0
 
 #rnn_layer
 num_layers = 2
-num_units = num_embedding
+num_units = 256
 forget_bias = 0.0
 
 #optimizer
@@ -35,53 +36,28 @@ epsilon = 1e-08
 num_epoch = 2
 
 #2. Preprocessing
-#file_path
-mypath = 'Holmes_Training_Data/'
+mypath = "./Holmes_Training_Data/"
 logdir = "./save/"
-data_file_path = "train.txt"
-#call function
 
-train_datasets, train_labelsets = read_data(mypath, small = True)
-test_datasets = get_questions()
+train_datasets, train_labelsets = read_data(mypath, small=True)
+test_datasets, test_options = get_questions(), get_options()
 
-words_ids = build_dictionary(train_datasets+train_labelsets, num_vocabulary)
+words_ids = build_dictionary(train_datasets + train_labelsets, num_vocabulary)
 
 train_datasets_id = label_id(train_datasets, words_ids)
 train_labelsets_id = label_id(train_labelsets, words_ids)
 test_datasets_id = label_id(test_datasets, words_ids)
 
 end_id = words_ids["<end>"]
-
 set_size = len(train_datasets_id)
 
-train_data = train_datasets_id[ :(set_size//5)*4]
-train_labels = train_labelsets_id[ :(set_size//5)*4]
+train_data = train_datasets_id[:(set_size//5)*4]
+train_labels = train_labelsets_id[:(set_size//5)*4]
 
-valid_data = train_datasets_id[(set_size//5)*4: ]
-valid_labels = train_labelsets_id[(set_size//5)*4: ]
+valid_data = train_datasets_id[(set_size//5)*4:]
+valid_labels = train_labelsets_id[(set_size//5)*4:]
 
 test_data = test_datasets_id
-
-###### correctness check ######
-# print train_data[0:5]
-# print train_labels[0:5]
-# print valid_data[0:5]
-# print valid_labels[0:5]
-# raw_input()
-###### correctness check ######
-
-#call function
-# data_file = open(data_file_path)
-# words_square = make_words_square(data_file)
-# _, train_datasets, valid_datasets, test_datasets = make_datasets(words_square)
-# words_ids = build_dictionary(train_datasets, num_vocabulary)
-# train_datasets_id, valid_datasets_id, test_datasets_id = label_id(train_datasets, words_ids), label_id(valid_datasets, words_ids), label_id(test_datasets, words_ids)
-# end_id = words_ids["<end>"]
-# train_data, train_labels, num_train_data = generate_pairs(train_datasets_id, end_id)
-# valid_data, valid_labels, num_valid_data = generate_pairs(valid_datasets_id, end_id)
-# test_data, test_labels, num_test_data = generate_pairs(test_datasets_id, end_id)
-
-
 
 #3. Defining
 #utilities
@@ -91,11 +67,11 @@ def one_hot(indices):
 #input_layer
 def projection_layer(x):
 	one_hot_p = one_hot(x)
-	projection_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_embedding], name="projection_weights")
+	projection_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="projection_weights")
 	product = tf.matmul(one_hot_p_reshape, projection_weights)
 	return product
 def embedding_layer(x):
-	embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_embedding], name="embedding_weights")
+	embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="embedding_weights")
 	embed = tf.nn.embedding_lookup(embedding_weights, x)
 	return embed
 
@@ -109,7 +85,7 @@ def multilayers():
 
 #output_layer
 def softmax_layer(x):
-	softmax_weights = tf.get_variable(dtype=tf.float32, shape=[num_embedding, num_vocabulary], name="softmax_weights")
+	softmax_weights = tf.get_variable(dtype=tf.float32, shape=[num_units, num_vocabulary], name="softmax_weights")
 	softmax_biases = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary], name="softmax_biases")
 	product = tf.add(tf.matmul(x, softmax_weights), softmax_biases)
 	softmax_product = tf.nn.softmax(logits=product, dim=-1, name="softmax_product")
@@ -152,7 +128,7 @@ class Model:
 					current_output, current_state = self.multilayers(self.dropout_layer[:, step, :], current_state)
 					self.current_outputs.append(current_output)
 				self.final_state = current_state
-				self.final_outputs = tf.reshape(tf.concat(axis=1, values=self.current_outputs), [-1, num_embedding])
+				self.final_outputs = tf.reshape(tf.concat(axis=1, values=self.current_outputs), [-1, num_units])
 		#output_layer
 		if(output_layer_type == "softmax_layer"):
 			self.output_layer = softmax_layer(self.final_outputs)
@@ -219,15 +195,42 @@ with tf.Graph().as_default():
 					loss_type = "sequence_loss_by_example", 
 					optimizer_type = "adam_optimizer"
 				)
-	supervisor = tf.train.Supervisor(logdir=logdir)
-	with supervisor.managed_session() as session:
+	saver = tf.train.Saver()
+	init_op = tf.global_variables_initializer()
+	with tf.Session() as session:
+		if(restore == True):
+			print("Model restored.")
+			saver.restore(session, "./save/model.ckpt")
+		else:
+			session.run(init_op)
 		for epoch in range(num_epoch):
 			#training
+			print "Now is training"
 			train_data_batches, train_labels_batches, train_num_batch = generate_batches(train_data, train_labels, train_batch_size)
 			average_cost_per_epoch = feed_dict_to_model(session, train_model, True, train_data_batches, train_labels_batches, train_num_batch)
 			print "Epoch: ", epoch, "Perplexity: ", average_cost_per_epoch
 			#validation
+			print "Now is validation"
 			valid_data_batches, valid_labels_batches, valid_num_batch = generate_batches(valid_data, valid_labels, valid_batch_size)
 			average_cost_per_epoch = feed_dict_to_model(session, valid_model, False, valid_data_batches, valid_labels_batches, valid_num_batch)
 			print "Epoch: ", epoch, "Perplexity: ", average_cost_per_epoch
+		save_path = saver.save(session, "./save/model.ckpt")
+  		print("Model saved in file: %s" % save_path)
+	'''
+	supervisor = tf.train.Supervisor(logdir=logdir, summary_op=None)
+	with supervisor.managed_session() as session:
+		for epoch in range(num_epoch):
+			#training
+			print "Now is training"
+			train_data_batches, train_labels_batches, train_num_batch = generate_batches(train_data, train_labels, train_batch_size)
+			average_cost_per_epoch = feed_dict_to_model(session, train_model, True, train_data_batches, train_labels_batches, train_num_batch)
+			print "Epoch: ", epoch, "Perplexity: ", average_cost_per_epoch
+			#validation
+			print "Now is validation"
+			valid_data_batches, valid_labels_batches, valid_num_batch = generate_batches(valid_data, valid_labels, valid_batch_size)
+			average_cost_per_epoch = feed_dict_to_model(session, valid_model, False, valid_data_batches, valid_labels_batches, valid_num_batch)
+			print "Epoch: ", epoch, "Perplexity: ", average_cost_per_epoch
+			#testing
+			print "Now is testing"
 		supervisor.saver.save(session, logdir, global_step=supervisor.global_step)
+	'''
