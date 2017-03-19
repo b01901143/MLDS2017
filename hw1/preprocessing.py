@@ -68,4 +68,20 @@ def generate_batches(data, labels, batch_size):
 	data_array, labels_array, order_array = np.array(data), np.array(labels), np.array(order)
 	data_array, labels_array = data_array[order_array], labels_array[order_array]
 	data_batch, labels_batch = data_array.reshape(num_batch, batch_size, -1), labels_array.reshape(num_batch, batch_size, -1)
+
 	return data_batch, labels_batch, num_batch
+
+def generate_testing_batches(test_data, test_options):
+	assert(len(test_data) == len(test_options))
+	test_array = np.repeat(test_data, 5, axis = 0)
+	option_array = np.array(test_options)
+
+	for i in range(len(test_options)):
+		test_array[5*i : 5*i+5, 2] = np.transpose(option_array[i])
+
+	test_batch = test_array.reshape(len(test_options), 5, -1)
+
+	return test_batch, len(test_options)
+
+
+

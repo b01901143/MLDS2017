@@ -10,8 +10,8 @@ restore = sys.argv[1]
 
 #1. Setting
 #batch_size
-train_batch_size = valid_batch_size = 20
-test_batch_size = 1
+train_batch_size = valid_batch_size = 40
+test_batch_size = 5
 
 #input_layer
 num_steps = 5
@@ -39,14 +39,15 @@ num_epoch = 2
 mypath = "./Holmes_Training_Data/"
 logdir = "./save/"
 
-train_datasets, train_labelsets = read_data(mypath, small=True)
-test_datasets, test_options = get_questions(), get_options()
+train_datasets, train_labelsets = read_data(mypath, small=False)
+test_datasets, test_optionsets = get_questions(), get_options()
 
 words_ids = build_dictionary(train_datasets + train_labelsets, num_vocabulary)
 
 train_datasets_id = label_id(train_datasets, words_ids)
 train_labelsets_id = label_id(train_labelsets, words_ids)
 test_datasets_id = label_id(test_datasets, words_ids)
+test_optionset_id = label_id(test_optionsets, words_ids)
 
 end_id = words_ids["<end>"]
 set_size = len(train_datasets_id)
@@ -58,6 +59,8 @@ valid_data = train_datasets_id[(set_size//5)*4:]
 valid_labels = train_labelsets_id[(set_size//5)*4:]
 
 test_data = test_datasets_id
+test_options = test_optionset_id
+
 
 #3. Defining
 #utilities
@@ -105,7 +108,7 @@ def adam_optimizer(loss):
 
 #4. Modeling
 class Model:
-	def __init__(self, input_layer_type, rnn_cell_type, output_layer_type, loss_type, optimizer_type):
+	def __init__(self, input_layer_type, rnn_cell_type, output_layer_type, loss_type, optimizer_type, batch_size, is_testing = False):
 		#placeholder
 		self.x, self.y_ = tf.placeholder(dtype=tf.int32, shape=[None, num_steps], name = "x"), tf.placeholder(dtype=tf.int32, shape=[None, num_steps], name="y_")
 		#input_layer
@@ -119,7 +122,7 @@ class Model:
 		with tf.variable_scope("lstm"):
 			if(rnn_cell_type == "lstm"):
 				self.multilayers = multilayers()
-				self.initial_state = self.multilayers.zero_state(train_batch_size, tf.float32)
+				self.initial_state = self.multilayers.zero_state(batch_size, tf.float32)
 				current_state = self.initial_state
 				self.current_outputs = []
 				for step in range(num_steps):
@@ -129,28 +132,83 @@ class Model:
 					self.current_outputs.append(current_output)
 				self.final_state = current_state
 				self.final_outputs = tf.reshape(tf.concat(axis=1, values=self.current_outputs), [-1, num_units])
+
 		#output_layer
 		if(output_layer_type == "softmax_layer"):
 			self.output_layer = softmax_layer(self.final_outputs)
+	
+		if is_testing:
+			return
+			
 		#loss
 		if(loss_type == "sequence_loss_by_example"):
 			self.loss = sequence_loss_by_example(self.output_layer, self.y_)
 		#cost
-		self.cost = tf.reduce_sum(self.loss) / train_batch_size
+		self.cost = tf.reduce_sum(self.loss) / batch_size
 		#optimizer
 		if(optimizer_type == "adam_optimizer"):
 			self.optimizer = adam_optimizer(self.cost)
 
 #5. Feeding
-def feed_dict_to_model(session, model, is_training, data_batches, label_batches, num_batch):
+def feed_dict_to_model(session, model, is_training, data_batches, label_batches, num_batch, is_testing = False):
 	total_cost_per_epoch = 0.0
 	total_num_steps_per_epoch = 0
 	initial_state = session.run(model.initial_state)
+	if is_testing:
+		fetch_dict = {
+			"output_layer":model.output_layer,
+			}
+		answers_with_prod = []
+		answers_with_sum = []
+		for batch in range(num_batch):
+			feed_dict = { model.x:data_batches[batch]}
+			for i, (c, h) in enumerate(model.initial_state):
+				feed_dict[c] = initial_state[i].c
+				feed_dict[h] = initial_state[i].h
+			track_dict = session.run(fetch_dict, feed_dict)
+			outputs = track_dict["output_layer"]
+			probs = []
+			sums = []
+			for idx in range(test_batch_size):
+				prob = 1.0
+				prob *= outputs[5*idx + 0, data_batches[batch, idx, 1]]
+				prob *= outputs[5*idx + 1, data_batches[batch, idx, 2]]
+				prob *= outputs[5*idx + 2, data_batches[batch, idx, 3]]
+				prob *= outputs[5*idx + 3, data_batches[batch, idx, 4]]
+				probs.append(prob)
+
+				summ = 0
+				summ += outputs[5*idx + 0, data_batches[batch, idx, 1]]
+				summ += outputs[5*idx + 1, data_batches[batch, idx, 2]]
+				summ += outputs[5*idx + 2, data_batches[batch, idx, 3]]
+				summ += outputs[5*idx + 3, data_batches[batch, idx, 4]]
+				sums.append(summ)
+			
+			answers_with_prod.append( str(chr(97 + np.argmax(probs))) )
+			answers_with_sum.append( str(chr(97 + np.argmax(sums))) )
+			# print outputs[:50,0]
+			# print len(outputs[0])
+			# print np.sum(outputs[0])
+			# print len(outputs)
+			# raw_input()
+		f_out1 = open("ans_with_prod.csv", 'w') 
+		f_out2 = open("ans_with_sum.csv", 'w') 
+		f_out1.write("id,answer\n")
+		f_out2.write("id,answer\n")
+		for idx in range(len(answers_with_prod)):
+			f_out1.write(str(idx+1)+","+answers_with_prod[idx]+"\n")	
+			f_out2.write(str(idx+1)+","+answers_with_sum[idx]+"\n")	
+
+		f_out1.close()
+		f_out2.close()
+		return
+
 	fetch_dict = {
 			"output_layer":model.output_layer,
 			"loss":model.loss,
 			"cost":model.cost
 		}
+		
 	if(is_training):
 		fetch_dict["optimizer"] = model.optimizer
 	for batch in range(num_batch):
@@ -175,7 +233,8 @@ with tf.Graph().as_default():
 					rnn_cell_type = "lstm", 
 					output_layer_type = "softmax_layer", 
 					loss_type = "sequence_loss_by_example", 
-					optimizer_type = "adam_optimizer"
+					optimizer_type = "adam_optimizer" ,
+					batch_size = train_batch_size
 				)
 	with tf.name_scope("Valid"):
 		with tf.variable_scope("Model", reuse=True, initializer=initializer):
@@ -184,7 +243,8 @@ with tf.Graph().as_default():
 					rnn_cell_type = "lstm", 
 					output_layer_type = "softmax_layer", 
 					loss_type = "sequence_loss_by_example", 
-					optimizer_type = "adam_optimizer"
+					optimizer_type = "adam_optimizer",
+					batch_size = valid_batch_size
 				)
 	with tf.name_scope("Test"):
 		with tf.variable_scope("Model", reuse=True, initializer=initializer):
@@ -193,7 +253,9 @@ with tf.Graph().as_default():
 					rnn_cell_type = "lstm", 
 					output_layer_type = "softmax_layer", 
 					loss_type = "sequence_loss_by_example", 
-					optimizer_type = "adam_optimizer"
+					optimizer_type = "adam_optimizer" ,
+					batch_size = test_batch_size,
+					is_testing = True
 				)
 	saver = tf.train.Saver()
 	init_op = tf.global_variables_initializer()
@@ -216,6 +278,13 @@ with tf.Graph().as_default():
 			print "Epoch: ", epoch, "Perplexity: ", average_cost_per_epoch
 		save_path = saver.save(session, "./save/model.ckpt")
   		print("Model saved in file: %s" % save_path)
+
+  		print "TESTING DATA : "
+
+		testing_data_batches, testing_num_batch = generate_testing_batches(test_data, test_options)
+		feed_dict_to_model(session, test_model, False, testing_data_batches, None, testing_num_batch, is_testing = True)
+
+
 	'''
 	supervisor = tf.train.Supervisor(logdir=logdir, summary_op=None)
 	with supervisor.managed_session() as session:
