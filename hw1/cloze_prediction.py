@@ -10,7 +10,7 @@ restore = sys.argv[1]
 
 #1. Setting
 #batch_size
-train_batch_size = valid_batch_size = 20
+train_batch_size = valid_batch_size = 40
 test_batch_size = 5
 
 #input_layer
@@ -22,7 +22,7 @@ input_keep_prob = 1.0
 output_keep_prob = 1.0
 
 #rnn_layer
-num_layers = 2
+num_layers = 1
 num_units = 256
 forget_bias = 0.0
 
@@ -33,7 +33,7 @@ beta2 = 0.999
 epsilon = 1e-08
 
 #train
-num_epoch = 2
+num_epoch = 3
 
 #2. Preprocessing
 mypath = "./Holmes_Training_Data/"
@@ -95,11 +95,11 @@ def softmax_layer(x):
 	return softmax_product
 
 #loss
-def sequence_loss_by_example(outputs, labels): 
+def sequence_loss_by_example(outputs, labels, batch_size): 
 	return tf.contrib.legacy_seq2seq.sequence_loss_by_example(
         	[outputs],
         	[tf.reshape(labels, [-1])],
-        	[tf.ones([train_batch_size * num_steps], dtype=tf.float32)]
+        	[tf.ones([batch_size * num_steps], dtype=tf.float32)]
         )
 
 #optimizer
@@ -137,12 +137,13 @@ class Model:
 		if(output_layer_type == "softmax_layer"):
 			self.output_layer = softmax_layer(self.final_outputs)
 	
-		if is_testing:
-			return
 			
 		#loss
 		if(loss_type == "sequence_loss_by_example"):
-			self.loss = sequence_loss_by_example(self.output_layer, self.y_)
+			self.loss = sequence_loss_by_example(self.output_layer, self.y_, batch_size)
+
+		if is_testing:
+			return
 		#cost
 		self.cost = tf.reduce_sum(self.loss) / batch_size
 		#optimizer
@@ -157,15 +158,17 @@ def feed_dict_to_model(session, model, is_training, data_batches, label_batches,
 	if is_testing:
 		fetch_dict = {
 			"output_layer":model.output_layer,
+			"loss":model.loss
 			}
 		answers_with_prod = []
 		answers_with_sum = []
 		for batch in range(num_batch):
-			feed_dict = { model.x:data_batches[batch]}
+			feed_dict = { model.x:data_batches[batch], model.y_:label_batches[batch] }
 			for i, (c, h) in enumerate(model.initial_state):
 				feed_dict[c] = initial_state[i].c
 				feed_dict[h] = initial_state[i].h
 			track_dict = session.run(fetch_dict, feed_dict)
+			'''
 			outputs = track_dict["output_layer"]
 			probs = []
 			sums = []
@@ -183,7 +186,14 @@ def feed_dict_to_model(session, model, is_training, data_batches, label_batches,
 				summ += outputs[5*idx + 2, data_batches[batch, idx, 3]]
 				summ += outputs[5*idx + 3, data_batches[batch, idx, 4]]
 				sums.append(summ)
-			
+			'''
+			costs = track_dict["loss"]
+			probs = []
+			sums = []
+			for idx in range(test_batch_size):
+				probs.append(np.prod(costs[5*idx: 5*idx+5]))
+				sums.append(np.sum(costs[5*idx: 5*idx+5]))
+
 			answers_with_prod.append( str(chr(97 + np.argmax(probs))) )
 			answers_with_sum.append( str(chr(97 + np.argmax(sums))) )
 			# print outputs[:50,0]
@@ -281,8 +291,8 @@ with tf.Graph().as_default():
 
   		print "TESTING DATA : "
 
-		testing_data_batches, testing_num_batch = generate_testing_batches(test_data, test_options)
-		feed_dict_to_model(session, test_model, False, testing_data_batches, None, testing_num_batch, is_testing = True)
+		testing_data_batches, testing_labels_batches, testing_num_batch = generate_testing_batches(test_data, test_options)
+		feed_dict_to_model(session, test_model, False, testing_data_batches, testing_labels_batches, testing_num_batch, is_testing = True)
 
 
 	'''

@@ -24,7 +24,7 @@ def get_questions():
 		for j in range(0,len(questions[idx])):
 			if questions[idx][j] == '_____':
 				questions[idx][j] = ' '
-				questions[idx] = questions[idx][j-2 : j+3]
+				questions[idx] = questions[idx][j-2 : j+4]
 				break
 	return questions
 
