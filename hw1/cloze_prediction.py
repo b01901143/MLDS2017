@@ -1,315 +1,291 @@
-#packages
-import sys
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import time
 import numpy as np
 import tensorflow as tf
-from parse import *
-from parse_question import *
-from preprocessing import *
+import reader
 
-restore = sys.argv[1]
+flags = tf.flags
 
-#1. Setting
-#batch_size
-train_batch_size = valid_batch_size = 40
-test_batch_size = 5
+flags.DEFINE_string("model", "small", "A type of model. Possible options are: small, medium, large.")
+flags.DEFINE_string("data_path", None, "Where the training/test data is stored.")
+flags.DEFINE_string("save_path", None, "Model output directory.")
+FLAGS = flags.FLAGS
 
-#input_layer
-num_steps = 5
-num_vocabulary = 12000
+class PTBInput(object):
+  def __init__(self, config, data, name=None):
+    self.batch_size = batch_size = config.batch_size
+    self.num_steps = num_steps = config.num_steps
+    self.epoch_size = ((len(data) // batch_size) - 1) // num_steps
+    self.input_data, self.targets = reader.ptb_producer(
+        data, batch_size, num_steps, name=name)
 
-#dropout_layer
-input_keep_prob = 1.0
-output_keep_prob = 1.0
+class PTBModel(object):
+    def __init__(self, is_training, config, input_):
+        self._input = input_
 
-#rnn_layer
-num_layers = 1
-num_units = 256
-forget_bias = 0.0
-
-#optimizer
-learning_rate = 0.001
-beta1 = 0.9
-beta2 = 0.999
-epsilon = 1e-08
-
-#train
-num_epoch = 3
-
-#2. Preprocessing
-mypath = "./Holmes_Training_Data/"
-logdir = "./save/"
-
-train_datasets, train_labelsets = read_data(mypath, small=False)
-test_datasets, test_optionsets = get_questions(), get_options()
-
-words_ids = build_dictionary(train_datasets + train_labelsets, num_vocabulary)
-
-train_datasets_id = label_id(train_datasets, words_ids)
-train_labelsets_id = label_id(train_labelsets, words_ids)
-test_datasets_id = label_id(test_datasets, words_ids)
-test_optionset_id = label_id(test_optionsets, words_ids)
-
-end_id = words_ids["<end>"]
-set_size = len(train_datasets_id)
-
-train_data = train_datasets_id[:(set_size//5)*4]
-train_labels = train_labelsets_id[:(set_size//5)*4]
-
-valid_data = train_datasets_id[(set_size//5)*4:]
-valid_labels = train_labelsets_id[(set_size//5)*4:]
-
-test_data = test_datasets_id
-test_options = test_optionset_id
-
-
-#3. Defining
-#utilities
-def one_hot(indices):
-	return tf.one_hot(indices=indices, depth=num_vocabulary, on_value=1, off_value=0, axis=None, dtype=tf.int32)
-
-#input_layer
-def projection_layer(x):
-	one_hot_p = one_hot(x)
-	projection_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="projection_weights")
-	product = tf.matmul(one_hot_p_reshape, projection_weights)
-	return product
-def embedding_layer(x):
-	embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="embedding_weights")
-	embed = tf.nn.embedding_lookup(embedding_weights, x)
-	return embed
-
-#hidden_layer
-def lstm_cell():
-	return tf.contrib.rnn.BasicLSTMCell(num_units=num_units, forget_bias=forget_bias, state_is_tuple=True)
-def cell_wrapper():
-	return tf.contrib.rnn.DropoutWrapper(cell=lstm_cell(), input_keep_prob=input_keep_prob, output_keep_prob=output_keep_prob)
-def multilayers():
-    return tf.contrib.rnn.MultiRNNCell(cells=[ cell_wrapper() for _ in range(num_layers) ], state_is_tuple=True)
-
-#output_layer
-def softmax_layer(x):
-	softmax_weights = tf.get_variable(dtype=tf.float32, shape=[num_units, num_vocabulary], name="softmax_weights")
-	softmax_biases = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary], name="softmax_biases")
-	product = tf.add(tf.matmul(x, softmax_weights), softmax_biases)
-	softmax_product = tf.nn.softmax(logits=product, dim=-1, name="softmax_product")
-	return softmax_product
-
-#loss
-def sequence_loss_by_example(outputs, labels, batch_size): 
-	return tf.contrib.legacy_seq2seq.sequence_loss_by_example(
-        	[outputs],
-        	[tf.reshape(labels, [-1])],
-        	[tf.ones([batch_size * num_steps], dtype=tf.float32)]
+        batch_size = input_.batch_size
+        num_steps = input_.num_steps
+        size = config.hidden_size
+        vocab_size = config.vocab_size
+        def lstm_cell():
+            return tf.contrib.rnn.BasicLSTMCell(size, forget_bias=0.0, state_is_tuple=True)
+        attn_cell = lstm_cell
+        if is_training and config.keep_prob < 1:
+            def attn_cell():
+                return tf.contrib.rnn.DropoutWrapper(lstm_cell(), output_keep_prob=config.keep_prob)
+        cell = tf.contrib.rnn.MultiRNNCell([attn_cell() for _ in range(config.num_layers)], state_is_tuple=True)
+        self._initial_state = cell.zero_state(batch_size, tf.float32)
+        with tf.device("/cpu:0"):
+            embedding = tf.get_variable("embedding", [vocab_size, size], dtype=tf.float32)
+            inputs = tf.nn.embedding_lookup(embedding, input_.input_data)
+        if is_training and config.keep_prob < 1:
+            inputs = tf.nn.dropout(inputs, config.keep_prob)
+        outputs = []
+        state = self._initial_state
+        with tf.variable_scope("RNN"):
+            for time_step in range(num_steps):
+                if time_step > 0:
+                    tf.get_variable_scope().reuse_variables()
+                (cell_output, state) = cell(inputs[:, time_step, :], state)
+                outputs.append(cell_output)
+        output = tf.reshape(tf.concat(axis=1, values=outputs), [-1, size])
+        softmax_w = tf.get_variable("softmax_w", [size, vocab_size], dtype=tf.float32)
+        softmax_b = tf.get_variable("softmax_b", [vocab_size], dtype=tf.float32)
+        self.logits = tf.matmul(output, softmax_w) + softmax_b
+        loss = tf.contrib.legacy_seq2seq.sequence_loss_by_example(
+            [self.logits],
+            [tf.reshape(input_.targets, [-1])],
+            [tf.ones([batch_size * num_steps], dtype=tf.float32)]
         )
+        self._cost = cost = tf.reduce_sum(loss) / batch_size
+        self._final_state = state
+        if not is_training:
+            return
+        self._lr = tf.Variable(0.0, trainable=False)
+        tvars = tf.trainable_variables()
+        grads, _ = tf.clip_by_global_norm(tf.gradients(cost, tvars), config.max_grad_norm)
+        optimizer = tf.train.GradientDescentOptimizer(self._lr)
+        self._train_op = optimizer.apply_gradients(
+            zip(grads, tvars),
+            global_step=tf.contrib.framework.get_or_create_global_step()
+        )
+        self._new_lr = tf.placeholder(tf.float32, shape=[], name="new_learning_rate")
+        self._lr_update = tf.assign(self._lr, self._new_lr)
+    def assign_lr(self, session, lr_value):
+        session.run(self._lr_update, feed_dict={self._new_lr: lr_value})
+    @property
+    def input(self):
+        return self._input
+    @property
+    def initial_state(self):
+        return self._initial_state
+    @property
+    def cost(self):
+        return self._cost
+    @property
+    def final_state(self):
+        return self._final_state
+    @property
+    def lr(self):
+        return self._lr
+    @property
+    def train_op(self):
+        return self._train_op
 
-#optimizer
-def adam_optimizer(loss):
-	return tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=beta1, beta2=beta2, epsilon=epsilon, use_locking=False).minimize(loss)
+class SmallConfig(object):
+    init_scale = 0.1
+    learning_rate = 1.0
+    max_grad_norm = 5
+    num_layers = 2
+    num_steps = 20
+    hidden_size = 200
+    max_epoch = 4
+    max_max_epoch = 1
+    keep_prob = 1.0
+    lr_decay = 0.5
+    batch_size = 20
+    vocab_size = 10000
 
-#4. Modeling
-class Model:
-	def __init__(self, input_layer_type, rnn_cell_type, output_layer_type, loss_type, optimizer_type, batch_size, is_testing = False):
-		#placeholder
-		self.x, self.y_ = tf.placeholder(dtype=tf.int32, shape=[None, num_steps], name = "x"), tf.placeholder(dtype=tf.int32, shape=[None, num_steps], name="y_")
-		#input_layer
-		if(input_layer_type == "projection_layer"):
-			self.input_layer = projection_layer(self.x)
-		elif(input_layer_type == "embedding_layer"):
-			self.input_layer = embedding_layer(self.x)
-		#dropout_layer
-		self.dropout_layer = tf.nn.dropout(self.input_layer, output_keep_prob)
-		#rnn
-		with tf.variable_scope("lstm"):
-			if(rnn_cell_type == "lstm"):
-				self.multilayers = multilayers()
-				self.initial_state = self.multilayers.zero_state(batch_size, tf.float32)
-				current_state = self.initial_state
-				self.current_outputs = []
-				for step in range(num_steps):
-					if step > 0:
-						tf.get_variable_scope().reuse_variables()
-					current_output, current_state = self.multilayers(self.dropout_layer[:, step, :], current_state)
-					self.current_outputs.append(current_output)
-				self.final_state = current_state
-				self.final_outputs = tf.reshape(tf.concat(axis=1, values=self.current_outputs), [-1, num_units])
+class MediumConfig(object):
+    init_scale = 0.05
+    learning_rate = 1.0
+    max_grad_norm = 5
+    num_layers = 2
+    num_steps = 35
+    hidden_size = 650
+    max_epoch = 6
+    max_max_epoch = 39
+    keep_prob = 0.5
+    lr_decay = 0.8
+    batch_size = 20
+    vocab_size = 10000
 
-		#output_layer
-		if(output_layer_type == "softmax_layer"):
-			self.output_layer = softmax_layer(self.final_outputs)
-	
-			
-		#loss
-		if(loss_type == "sequence_loss_by_example"):
-			self.loss = sequence_loss_by_example(self.output_layer, self.y_, batch_size)
+class LargeConfig(object):
+    init_scale = 0.04
+    learning_rate = 1.0
+    max_grad_norm = 10
+    num_layers = 2
+    num_steps = 35
+    hidden_size = 1500
+    max_epoch = 14
+    max_max_epoch = 55
+    keep_prob = 0.35
+    lr_decay = 1 / 1.15
+    batch_size = 20
+    vocab_size = 10000
 
-		if is_testing:
-			return
-		#cost
-		self.cost = tf.reduce_sum(self.loss) / batch_size
-		#optimizer
-		if(optimizer_type == "adam_optimizer"):
-			self.optimizer = adam_optimizer(self.cost)
+class TestConfig(object):
+    init_scale = 0.1
+    learning_rate = 1.0
+    max_grad_norm = 1
+    num_layers = 1
+    num_steps = 2
+    hidden_size = 2
+    max_epoch = 1
+    max_max_epoch = 1
+    keep_prob = 1.0
+    lr_decay = 0.5
+    batch_size = 20
+    vocab_size = 10000
 
-#5. Feeding
-def feed_dict_to_model(session, model, is_training, data_batches, label_batches, num_batch, is_testing = False):
-	total_cost_per_epoch = 0.0
-	total_num_steps_per_epoch = 0
-	initial_state = session.run(model.initial_state)
-	if is_testing:
-		fetch_dict = {
-			"output_layer":model.output_layer,
-			"loss":model.loss
-			}
-		answers_with_prod = []
-		answers_with_sum = []
-		for batch in range(num_batch):
-			feed_dict = { model.x:data_batches[batch], model.y_:label_batches[batch] }
-			for i, (c, h) in enumerate(model.initial_state):
-				feed_dict[c] = initial_state[i].c
-				feed_dict[h] = initial_state[i].h
-			track_dict = session.run(fetch_dict, feed_dict)
-			'''
-			outputs = track_dict["output_layer"]
-			probs = []
-			sums = []
-			for idx in range(test_batch_size):
-				prob = 1.0
-				prob *= outputs[5*idx + 0, data_batches[batch, idx, 1]]
-				prob *= outputs[5*idx + 1, data_batches[batch, idx, 2]]
-				prob *= outputs[5*idx + 2, data_batches[batch, idx, 3]]
-				prob *= outputs[5*idx + 3, data_batches[batch, idx, 4]]
-				probs.append(prob)
+def run_epoch(session, model, is_testing=False, eval_op=None, verbose=False):
+    if is_testing:
+        fetch_dict = {
+                "logits":model.logits,
+            }
+        answers_with_prod = []
+        answers_with_sum = []
+        for step in range(model.input.epoch_size):
+            
+        for batch in range(num_batch):
+            feed_dict = { model.x:data_batches[batch]}
+            for i, (c, h) in enumerate(model.initial_state):
+                feed_dict[c] = initial_state[i].c
+                feed_dict[h] = initial_state[i].h
+            track_dict = session.run(fetch_dict, feed_dict)
+            outputs = track_dict["output_layer"]
+            probs = []
+            sums = []
+            for idx in range(test_batch_size):
+                prob = 1.0
+                prob *= outputs[5*idx + 0, data_batches[batch, idx, 1]]
+                prob *= outputs[5*idx + 1, data_batches[batch, idx, 2]]
+                prob *= outputs[5*idx + 2, data_batches[batch, idx, 3]]
+                prob *= outputs[5*idx + 3, data_batches[batch, idx, 4]]
+                probs.append(prob)
 
-				summ = 0
-				summ += outputs[5*idx + 0, data_batches[batch, idx, 1]]
-				summ += outputs[5*idx + 1, data_batches[batch, idx, 2]]
-				summ += outputs[5*idx + 2, data_batches[batch, idx, 3]]
-				summ += outputs[5*idx + 3, data_batches[batch, idx, 4]]
-				sums.append(summ)
-			'''
-			costs = track_dict["loss"]
-			probs = []
-			sums = []
-			for idx in range(test_batch_size):
-				probs.append(np.prod(costs[5*idx: 5*idx+5]))
-				sums.append(np.sum(costs[5*idx: 5*idx+5]))
+                summ = 0
+                summ += outputs[5*idx + 0, data_batches[batch, idx, 1]]
+                summ += outputs[5*idx + 1, data_batches[batch, idx, 2]]
+                summ += outputs[5*idx + 2, data_batches[batch, idx, 3]]
+                summ += outputs[5*idx + 3, data_batches[batch, idx, 4]]
+                sums.append(summ)
+            
+            answers_with_prod.append( str(chr(97 + np.argmax(probs))) )
+            answers_with_sum.append( str(chr(97 + np.argmax(sums))) )
+            # print outputs[:50,0]
+            # print len(outputs[0])
+            # print np.sum(outputs[0])
+            # print len(outputs)
+            # raw_input()
+        f_out1 = open("ans_with_prod.csv", 'w') 
+        f_out2 = open("ans_with_sum.csv", 'w') 
+        f_out1.write("id,answer\n")
+        f_out2.write("id,answer\n")
+        for idx in range(len(answers_with_prod)):
+            f_out1.write(str(idx+1)+","+answers_with_prod[idx]+"\n")    
+            f_out2.write(str(idx+1)+","+answers_with_sum[idx]+"\n") 
 
-			answers_with_prod.append( str(chr(97 + np.argmax(probs))) )
-			answers_with_sum.append( str(chr(97 + np.argmax(sums))) )
-			# print outputs[:50,0]
-			# print len(outputs[0])
-			# print np.sum(outputs[0])
-			# print len(outputs)
-			# raw_input()
-		f_out1 = open("ans_with_prod.csv", 'w') 
-		f_out2 = open("ans_with_sum.csv", 'w') 
-		f_out1.write("id,answer\n")
-		f_out2.write("id,answer\n")
-		for idx in range(len(answers_with_prod)):
-			f_out1.write(str(idx+1)+","+answers_with_prod[idx]+"\n")	
-			f_out2.write(str(idx+1)+","+answers_with_sum[idx]+"\n")	
-
-		f_out1.close()
-		f_out2.close()
-		return
-
-	fetch_dict = {
-			"output_layer":model.output_layer,
-			"loss":model.loss,
-			"cost":model.cost
-		}
-		
-	if(is_training):
-		fetch_dict["optimizer"] = model.optimizer
-	for batch in range(num_batch):
-		feed_dict = { model.x:data_batches[batch], model.y_:label_batches[batch] }
-		for i, (c, h) in enumerate(model.initial_state):
-			feed_dict[c] = initial_state[i].c
-			feed_dict[h] = initial_state[i].h
-		track_dict = session.run(fetch_dict, feed_dict)
-		total_cost_per_epoch += track_dict["cost"]
-		total_num_steps_per_epoch += num_steps
-		if(batch % 100 == 0):
-			print "Batch: ", batch, "/", num_batch, "Perplexity: ", np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
-	return np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
-
-#6. Graphing
-with tf.Graph().as_default():
-	initializer = tf.random_uniform_initializer(dtype=tf.float32, minval=-0.1, maxval=0.1, seed=1234)
-	with tf.name_scope("Train"):
-		with tf.variable_scope("Model", reuse=None, initializer=initializer):
-			train_model = Model(
-					input_layer_type = "embedding_layer", 
-					rnn_cell_type = "lstm", 
-					output_layer_type = "softmax_layer", 
-					loss_type = "sequence_loss_by_example", 
-					optimizer_type = "adam_optimizer" ,
-					batch_size = train_batch_size
-				)
-	with tf.name_scope("Valid"):
-		with tf.variable_scope("Model", reuse=True, initializer=initializer):
-			valid_model = Model(
-					input_layer_type = "embedding_layer", 
-					rnn_cell_type = "lstm", 
-					output_layer_type = "softmax_layer", 
-					loss_type = "sequence_loss_by_example", 
-					optimizer_type = "adam_optimizer",
-					batch_size = valid_batch_size
-				)
-	with tf.name_scope("Test"):
-		with tf.variable_scope("Model", reuse=True, initializer=initializer):
-			test_model = Model(
-					input_layer_type = "embedding_layer", 
-					rnn_cell_type = "lstm", 
-					output_layer_type = "softmax_layer", 
-					loss_type = "sequence_loss_by_example", 
-					optimizer_type = "adam_optimizer" ,
-					batch_size = test_batch_size,
-					is_testing = True
-				)
-	saver = tf.train.Saver()
-	init_op = tf.global_variables_initializer()
-	with tf.Session() as session:
-		if(restore == True):
-			print("Model restored.")
-			saver.restore(session, "./save/model.ckpt")
-		else:
-			session.run(init_op)
-		for epoch in range(num_epoch):
-			#training
-			print "Now is training"
-			train_data_batches, train_labels_batches, train_num_batch = generate_batches(train_data, train_labels, train_batch_size)
-			average_cost_per_epoch = feed_dict_to_model(session, train_model, True, train_data_batches, train_labels_batches, train_num_batch)
-			print "Epoch: ", epoch, "/", num_epoch, "Perplexity: ", average_cost_per_epoch
-			#validation
-			print "Now is validation"
-			valid_data_batches, valid_labels_batches, valid_num_batch = generate_batches(valid_data, valid_labels, valid_batch_size)
-			average_cost_per_epoch = feed_dict_to_model(session, valid_model, False, valid_data_batches, valid_labels_batches, valid_num_batch)
-			print "Epoch: ", epoch, "/", num_epoch, "Perplexity: ", average_cost_per_epoch
-		save_path = saver.save(session, "./save/model.ckpt")
-  		print("Model saved in file: %s" % save_path)
-
-  		print "TESTING DATA : "
-
-		testing_data_batches, testing_labels_batches, testing_num_batch = generate_testing_batches(test_data, test_options)
-		feed_dict_to_model(session, test_model, False, testing_data_batches, testing_labels_batches, testing_num_batch, is_testing = True)
+        f_out1.close()
+        f_out2.close()
+        return
 
 
-	'''
-	supervisor = tf.train.Supervisor(logdir=logdir, summary_op=None)
-	with supervisor.managed_session() as session:
-		for epoch in range(num_epoch):
-			#training
-			print "Now is training"
-			train_data_batches, train_labels_batches, train_num_batch = generate_batches(train_data, train_labels, train_batch_size)
-			average_cost_per_epoch = feed_dict_to_model(session, train_model, True, train_data_batches, train_labels_batches, train_num_batch)
-			print "Epoch: ", epoch, "Perplexity: ", average_cost_per_epoch
-			#validation
-			print "Now is validation"
-			valid_data_batches, valid_labels_batches, valid_num_batch = generate_batches(valid_data, valid_labels, valid_batch_size)
-			average_cost_per_epoch = feed_dict_to_model(session, valid_model, False, valid_data_batches, valid_labels_batches, valid_num_batch)
-			print "Epoch: ", epoch, "Perplexity: ", average_cost_per_epoch
-			#testing
-			print "Now is testing"
-		supervisor.saver.save(session, logdir, global_step=supervisor.global_step)
-	'''
+
+    start_time = time.time()
+    costs = 0.0
+    iters = 0
+    state = session.run(model.initial_state)
+    fetches = {
+        "logits": model.logits,
+        "cost": model.cost,
+        "final_state": model.final_state,
+    }
+    if eval_op is not None:
+        fetches["eval_op"] = eval_op
+    for step in range(model.input.epoch_size):
+        feed_dict = {}
+        for i, (c, h) in enumerate(model.initial_state):
+            feed_dict[c] = state[i].c
+            feed_dict[h] = state[i].h
+        vals = session.run(fetches, feed_dict)
+        cost = vals["cost"]
+        state = vals["final_state"]
+        costs += cost
+        iters += model.input.num_steps
+        if step % 1000 == 0:
+            print(np.sum(vals["logits"], axis=1))
+        if verbose and step % (model.input.epoch_size // 10) == 10:
+            print("%.3f perplexity: %.3f speed: %.0f wps" % (step * 1.0 / model.input.epoch_size, np.exp(costs / iters), iters * model.input.batch_size / (time.time() - start_time)))
+    return np.exp(costs / iters)
+
+def get_config():
+    if FLAGS.model == "small":
+        return SmallConfig()
+    elif FLAGS.model == "medium":
+        return MediumConfig()
+    elif FLAGS.model == "large":
+        return LargeConfig()
+    elif FLAGS.model == "test":
+        return TestConfig()
+    else:
+        raise ValueError("Invalid model: %s", FLAGS.model)
+
+def main(_):
+    if not FLAGS.data_path:
+        raise ValueError("Must set --data_path to PTB data directory")
+    raw_data = reader.ptb_raw_data(FLAGS.data_path)
+    train_data, valid_data, test_data, _ = raw_data
+    config = get_config()
+    eval_config = get_config()
+    eval_config.batch_size = 1
+    eval_config.num_steps = 1
+    with tf.Graph().as_default():
+        initializer = tf.random_uniform_initializer(-config.init_scale, config.init_scale)
+        with tf.name_scope("Train"):
+            train_input = PTBInput(config=config, data=train_data, name="TrainInput")
+            with tf.variable_scope("Model", reuse=None, initializer=initializer):
+                m = PTBModel(is_training=True, config=config, input_=train_input)
+            tf.summary.scalar("Training Loss", m.cost)
+            tf.summary.scalar("Learning Rate", m.lr)
+
+        with tf.name_scope("Valid"):
+            valid_input = PTBInput(config=config, data=valid_data, name="ValidInput")
+            with tf.variable_scope("Model", reuse=True, initializer=initializer):
+                mvalid = PTBModel(is_training=False, config=config, input_=valid_input)
+            tf.summary.scalar("Validation Loss", mvalid.cost)
+        with tf.name_scope("Test"):
+            test_input = PTBInput(config=eval_config, data=test_data, name="TestInput")
+            with tf.variable_scope("Model", reuse=True, initializer=initializer):
+                mtest = PTBModel(is_training=False, config=eval_config, input_=test_input)
+        sv = tf.train.Supervisor(logdir=FLAGS.save_path)
+        with sv.managed_session() as session:
+            for i in range(config.max_max_epoch):
+                lr_decay = config.lr_decay ** max(i + 1 - config.max_epoch, 0.0)
+                m.assign_lr(session, config.learning_rate * lr_decay)
+                print("Epoch: %d Learning rate: %.3f" % (i + 1, session.run(m.lr)))
+                train_perplexity = run_epoch(session, m, is_testing=False, eval_op=m.train_op, verbose=True)
+                print("Epoch: %d Train Perplexity: %.3f" % (i + 1, train_perplexity))
+                valid_perplexity = run_epoch(session, mvalid, is_testing=False)
+                print("Epoch: %d Valid Perplexity: %.3f" % (i + 1, valid_perplexity))
+            test_perplexity = run_epoch(session, mtest, is_testing=True)
+            print("Test Perplexity: %.3f" % test_perplexity)
+            if FLAGS.save_path:
+                print("Saving model to %s." % FLAGS.save_path)
+                sv.saver.save(session, FLAGS.save_path, global_step=sv.global_step)
+
+if __name__ == "__main__":
+    tf.app.run()

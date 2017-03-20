@@ -3,7 +3,7 @@ import tensorflow as tf
 from os import listdir
 from os.path import isfile, join
 
-def read_data(mypath, small = False):
+def read_data(mypath, small = True):
 	num = 0
 	files = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 	train_data = []
