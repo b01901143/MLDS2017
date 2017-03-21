@@ -1,7 +1,7 @@
 from parse import *
 from parse_question import *
 
-read_data("./data/raw/Holmes/", small = True)
+read_data("./data/raw/Holmes/", small = False)
 
 #path setting
 in_file_path = "./data/raw/cut/big.txt"
