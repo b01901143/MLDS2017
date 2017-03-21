@@ -1,15 +1,4 @@
 from parse import *
-from parse_question import *
-from preprocessing import *
-
-test_datasets, test_optionsets = get_questions(), get_options()
-
-testing_data_batches, testing_labels_batches, testing_num_batch = generate_testing_batches(test_datasets, test_optionsets)
-
-# print testing_data_batches,"1"
-# raw_input()
-# print testing_labels_batches,"2"
-
 
 read_data("./data/raw/Holmes/", small = True)
 

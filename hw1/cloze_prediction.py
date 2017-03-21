@@ -3,14 +3,26 @@ import numpy as np
 import tensorflow as tf
 import divide
 import word2vec as w2v
+from parse_question import *
+from preprocessing import *
+
+test_datasets, test_optionsets = get_questions(), get_options()
+
+testing_data_batches, testing_num_batch = generate_testing_batches(test_datasets, test_optionsets)
+
+
 #path
 data_path = "./data/sets/cut/"
 save_path = "./save/"
 
 #data
 raw_data = reader.ptb_raw_data(data_path)
-train_data, valid_data, test_data, _ = raw_data
+train_data, valid_data, test_data, word_to_id, _ = raw_data
 
+
+for i in range(len(testing_data_batches)):
+	for j in range(len(testing_data_batches[i])):
+		testing_data_batches[i,j] = [word_to_id[word] if word in word_to_id else 9999 for word in testing_data_batches[i,j] ]
 
 
 #vocabulary
