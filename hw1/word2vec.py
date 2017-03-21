@@ -31,47 +31,43 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
-import sys
-import threading
-import time
 import pickle
-
-from six.moves import xrange  # pylint: disable=redefined-builtin
-
 import numpy as np
-import tensorflow as tf
-import embd.word2vec_optimized as w2v_optm
-save_path = './embd/embd_save/model.ckpt-2261065'
+
+word2id = open('./word2id','rb')
+id2embd = open('./id2embd','rb')
+
+word_dic= pickle.load(word2id)
+embd    = pickle.load(id2embd)
 class embd_table:
 	def __init__(self):
-		"""Train a word2vec model."""
-		opts = w2v_optm.Options()
-		config = tf.ConfigProto(allow_soft_placement=True)
-		with tf.Graph().as_default(), tf.Session(config=config) as session:
-			with tf.device("/cpu:0"):
-				model = w2v_optm.Word2Vec(opts, session)
-				model.saver.restore(session, save_path)
-				_embd_tensor =tf.nn.l2_normalize(model._w_in, 1)
-				self._embd= _embd_tensor.eval()
-				self._word2id = model._word2id
-				self._id2word = model._id2word
+		self._embd= embd
+		self._word2id = word_dic
 		#tf.global_variables_initializer().run()
 	def lookupId(self, words):
 		# return a list of word ids
                 ids = []
                 for w in words:
                     if w=='<start>':
-                        ids[w]=80000
+                        ids.append(80000)
                     elif w=='<end>':
-                        ids[w]=90000
+                        ids.append(90000)
                     else:
-                        ids[w]=self._word2id.get(w)
+                        ids.append(self._word2id.get(w))
 		return ids
 	def lookupEmbd(self,ids):
 		# return a list of embeddings
-                return self._embd[ [[id,0][id==None]  for id in ids] ]
-
+                embed=np.zeros(shape=(len(ids),200),dtype=np.float32)
+                start_embd=np.full((200),0,dtype=np.float32)
+                end_embd=np.full((200),1,dtype=np.float32)
+                for idx, id in enumerate (ids):
+                    if id== 80000:
+                        embed[idx]=start_embd
+                    elif id==90000:
+                        embed[idx]=end_embd
+                    else:
+                        embed[idx]=self._embd[[id,0][id==None]]
+                return embed
 
 table=embd_table()
 test=table.lookupId(['<start>','pig','<end>','is'])
@@ -80,12 +76,3 @@ embed=table.lookupEmbd(test)
 print (embed)
 print (embed.shape)
 
-
-'''
-word_dic=open('word2id','wb')
-pickle.dump(table._word2id,word_dic)
-embd = open('id2embd','wb')
-pickle.dump(table._embd,embd)
-word_dic.close()
-embd.close()
-'''

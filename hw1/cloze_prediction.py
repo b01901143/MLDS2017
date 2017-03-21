@@ -2,7 +2,7 @@ import reader
 import numpy as np
 import tensorflow as tf
 import divide
-
+import word2vec as w2v
 #path
 data_path = "./data/sets/cut/"
 save_path = "./save/"
@@ -16,6 +16,10 @@ num_vocabulary = 10000
 
 #initializer
 initial_scale = 0.1
+
+#embedding layer
+pretrainEmbd=w2v.embd_table()
+pretrained=None
 
 #dropout_layer
 input_keep_prob = 1.0
@@ -39,8 +43,12 @@ train_num_steps = valid_num_steps = 5
 test_batch_size = test_num_steps = 5
 
 def embedding_layer(x):
-    embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="embedding_weights")
-    embed = tf.nn.embedding_lookup(embedding_weights, x)
+# if pretrained x are id, otherwise words
+    if pretrained==None:
+        embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="embedding_weights")
+        embed = tf.nn.embedding_lookup(embedding_weights, x)
+    else:
+        embed = [pretrainEmbd.lookupEmbd(lookupId(x))]
     return embed
 
 def lstm_cell():
@@ -104,7 +112,7 @@ class ModelFigure(object):
                 if step > 0:
                     tf.get_variable_scope().reuse_variables()
                 current_output, current_state = multilayers(self.input_layer[:, step, :], current_state)
-                current_outputs.append(current_output)        
+                current_outputs.append(current_output)
         self.final_output = tf.reshape(tf.concat(axis=1, values=current_outputs), [-1, num_units])
         self.final_state = current_state
         self.logits = softmax_layer(self.final_output)

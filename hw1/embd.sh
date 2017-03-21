@@ -1,6 +1,3 @@
-wget -O embd.zip https://www.dropbox.com/s/80kr8195myhjpt7/embd.zip?dl=1
-unzip embd.zip 
-cd ./embd
-TF_INC=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')
-g++ -std=c++11 -shared word2vec_ops.cc word2vec_kernels.cc -o word2vec_ops.so -fPIC -I $TF_INC -O2 -D_GLIBCXX_USE_CXX11_ABI=0
-cd ..
+wget -O embd.zip https://www.dropbox.com/s/geq1kk0fmniqk38/embd.zip?dl=1
+unzip -u-o embd.zip
+rm embd.zip
