@@ -35,8 +35,8 @@ max_grad_norm = 5
 #batch, epoch
 num_epoch = 1
 train_batch_size = valid_batch_size = 20
-train_num_steps = valid_num_steps = 20
-test_batch_size = test_num_steps = 1
+train_num_steps = valid_num_steps = 5
+test_batch_size = test_num_steps = 5
 
 def embedding_layer(x):
     embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="embedding_weights")
@@ -62,6 +62,7 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
     fetch_dict = {
         "logits": model_figure.logits,
         "cost": model_figure.cost,
+        "data": input_figure.data
     }
     if is_training == True:
         fetch_dict["train_optimizer"] = model_figure.train_optimizer
