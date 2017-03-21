@@ -15,17 +15,22 @@ def _build_vocab(filename):
     words, _ = list(zip(*count_pairs))
     word_to_id = dict(zip(words, range(len(words))))
     return word_to_id
+    
 def _build_vocab_no_id(filename):
-	data = _read_words(filename)
-	counter = collections.Counter(data)
-	count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
-	count_pairs = count_pairs[:9999]
+    data = _read_words(filename)
+    counter = collections.Counter(data)
+    count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
+    count_pairs = count_pairs[:9999]
     #||volcab|| = 10000,  9999 for <unk>
-	words, _ = list(zip(*count_pairs))
-	words=words+('<unk>',)
-	return words
+    words, _ = list(zip(*count_pairs))
+    words=words+('<unk>',)
+    return words
+
 def _file_to_word_ids(filename, word_to_id):
     data = _read_words(filename)
+    return [word_to_id[word] if word in word_to_id else 9999 for word in data ] ### modified: 9999 for <unk>
+
+def _list_to_word_ids(data, word_to_id):
     return [word_to_id[word] if word in word_to_id else 9999 for word in data ] ### modified: 9999 for <unk>
 
 def ptb_raw_data(data_path=None):
@@ -37,7 +42,10 @@ def ptb_raw_data(data_path=None):
     valid_data = _file_to_word_ids(valid_path, word_to_id)
     test_data = _file_to_word_ids(test_path, word_to_id)
     vocabulary = len(word_to_id)
-    return train_data, valid_data, test_data, vocabulary
+    # f_out = open("log.txt" , "w")
+    # for d in train_data:
+    #     f_out.write(str(d)+" ")
+    return train_data, valid_data, test_data, word_to_id, vocabulary
 
 def ptb_producer(raw_data, batch_size, num_steps, name=None):
     with tf.name_scope(name, "PTBProducer", [raw_data, batch_size, num_steps]):
@@ -54,7 +62,7 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
         x.set_shape([batch_size, num_steps])
         y = tf.strided_slice(data, [0, i * num_steps + 1], [batch_size, (i + 1) * num_steps + 1])
         y.set_shape([batch_size, num_steps])
-        return x, y
+        return x, y, i
 test = _build_vocab_no_id(os.path.join("./data/sets/cut/","train.txt")) 
 print(test[0])
 print(test[1])

@@ -11,6 +11,8 @@ save_path = "./save/"
 raw_data = reader.ptb_raw_data(data_path)
 train_data, valid_data, test_data, _ = raw_data
 
+
+
 #vocabulary
 num_vocabulary = 10000
 
@@ -70,7 +72,9 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
     fetch_dict = {
         "logits": model_figure.logits,
         "cost": model_figure.cost,
-        "data": input_figure.data
+        "data": input_figure.data,
+        "data_r": input_figure.data_r,
+        "label": input_figure.labels
     }
     if is_training == True:
         fetch_dict["train_optimizer"] = model_figure.train_optimizer
@@ -80,10 +84,17 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
             feed_dict[c] = initial_state[i].c
             feed_dict[h] = initial_state[i].h
         track_dict = session.run(fetch_dict, feed_dict)
+        # print track_dict["data_r"], "d_r"
+        # raw_input()
+        # print track_dict["data"], "d"
+        # raw_input()
+        # print track_dict["label"], "l"
+        # raw_input()
         total_cost_per_epoch += track_dict["cost"]
         total_num_steps_per_epoch += input_figure.num_steps
         if is_training and batch % (input_figure.num_batch // 10) == 10:
             print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))
+
     return np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
 
 class InputFigure(object):
@@ -91,7 +102,7 @@ class InputFigure(object):
         self.batch_size = batch_size
         self.num_steps = num_steps
         self.num_batch = ((len(data) // batch_size) - 1) // num_steps
-        self.data, self.labels = reader.ptb_producer(data, batch_size, num_steps, name)
+        self.data, self.labels, self.data_r = reader.ptb_producer(data, batch_size, num_steps, name)
 
 class ModelFigure(object):
     def __init__(self, input_figure, is_training=False):

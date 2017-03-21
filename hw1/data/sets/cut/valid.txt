@@ -2799,4 +2799,10 @@
 <start> <start> in turning out of the road to pass a cart the motor car crashed into a pole in front of the entrance to the estate of mrs <end> <end> 
 <start> <start> the college men were picked up unconscious and died in the bryn mawr hospital <end> <end> 
 <start> <start> heide norris of philadelphia who went to new york to meet the surviving members of the ryerson family told of a happy incident at the last moment as the carpathia swung close to the pier <end> <end> 
-<start> <start> there had been no positive information that young jack ryerson was among those saved indeed it was feared th
+<start> <start> there had been no positive information that young jack ryerson was among those saved indeed it was feared that he had gone down with the titanic like his father arthur ryerson <end> <end> 
+<start> <start> norris spoke of the feeling of relief that came over him as watching from the pier he saw jack ryerson come from a cabin and stand at the railing <end> <end> 
+<start> <start> the name of the boy was missing from some of the lists and for two days it was reported that he had perished <end> <end> 
+<start> <start> less than hours after the cunard line steamship carpathia came in as a rescue ship with survivors of the titanic disaster she sailed again for the mediterranean cruise which she originally started upon last week <end> <end> 
+<start> <start> bride the second marconi wireless operator of the titanic who had both of his legs crushed on a lifeboat was carried off on the shoulders of the ships officers to st <end> <end> 
+<start> <start> rostron of the carpathia addressed an official report giving his account of the carpathias rescue work to the general manager of the cunard line liverpool <end> <end> 
+<start> <start> the report read i beg to report that at a <end> <end> 

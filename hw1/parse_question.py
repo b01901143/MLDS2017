@@ -3,7 +3,7 @@ import pandas as pd
 
 def get_questions():
 	questions = []
-	df = pd.read_csv("testing_data.csv")
+	df = pd.read_csv("./data/test/testing_data.csv")
 	for item in df['question']:
 		words = map(str,item.split())
 		i = 0
@@ -29,7 +29,7 @@ def get_questions():
 	return questions
 
 def get_options():
-	df = pd.read_csv("testing_data.csv")
+	df = pd.read_csv("./data/test/testing_data.csv")
 	options = []
 	dat = map(list, df.values)
 	for item in dat:
