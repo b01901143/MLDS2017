@@ -1,4 +1,4 @@
-wget -O embd.zip https://www.dropbox.com/s/s54agpg1k0yahc3/embd.zip?dl=1
+wget -O embd.zip https://www.dropbox.com/s/80kr8195myhjpt7/embd.zip?dl=1
 unzip embd.zip 
 cd ./embd
 TF_INC=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')
