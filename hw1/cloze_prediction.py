@@ -33,7 +33,7 @@ learning_rate_decay_param = 4
 max_grad_norm = 5
 
 #batch, epoch
-num_epoch = 1
+num_epoch = 2
 train_batch_size = valid_batch_size = 20
 train_num_steps = valid_num_steps = 5
 test_batch_size = test_num_steps = 5
