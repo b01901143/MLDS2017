@@ -63,20 +63,13 @@ def read_data(mypath, small = True):
 							continue
 						if not words[pivot_pre].isalpha():
 							continue
-						if not i - pivot_pre > 4:
+						if not i - pivot_pre > 6:
 							pivot_pre = i+1 # !!!!!!!!!!!!!
 							continue
 						temp = (map(str,"<start> <start>".split()) + words[pivot_pre : i+1] + map(str,"<end> <end>".split()))
 
-						chop_idx = []
-						while(len(chop_idx) < len(temp)//3):
-							i_new = np.random.randint( len(temp)-5 )
-							if i_new not in chop_idx:
-								chop_idx.append(i_new)
-						for idc in chop_idx:
-							train_data.append(temp[idc :idc+5])
-							labels.append(temp[idc+1 :idc+6])
-							count += 1
+						train_data.append(temp)
+
 						pivot_pre = i+1
 				i += 1
 				if i >= len(words):
@@ -86,20 +79,14 @@ def read_data(mypath, small = True):
 
 
 
-	f_out_t = open("train.txt", 'w') 
-	f_out_l = open("label.txt", 'w') 
+	f_out_t = open("./data/raw/cut/big.txt", 'w') 
 	for st in train_data:
 		for wd in st:
 			f_out_t.write(wd + ' ')
 
 		f_out_t.write('\n')
 
-	for st in labels:
-		for wd in st:
-			f_out_l.write(wd + ' ')
-
-		f_out_l.write('\n')
 	# print sentences
-	print "Data parsed to train.txt & label.txt, size = " + str(len(labels))
+	print "Data parsed to ./data/raw/cut/big.txt, size = " + str(len(train_data)) + " setences"
 	# raw_input()
-	return train_data, labels
+	return train_data

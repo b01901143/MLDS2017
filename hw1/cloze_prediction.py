@@ -1,6 +1,7 @@
 import reader
 import numpy as np
 import tensorflow as tf
+import divide
 
 #path
 data_path = "./data/sets/cut/"

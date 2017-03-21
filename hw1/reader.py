@@ -4,20 +4,21 @@ import tensorflow as tf
 
 def _read_words(filename):
     with tf.gfile.GFile(filename, "r") as f:
-        return f.read().decode("utf-8").replace("\n", "<eos>").split()
+        return f.read().split()
 
 def _build_vocab(filename):
     data = _read_words(filename)
     counter = collections.Counter(data)
     count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
-    count_pairs = count_pairs[:10000]
+    count_pairs = count_pairs[:9999]
+    #||volcab|| = 10000,  9999 for <unk>
     words, _ = list(zip(*count_pairs))
     word_to_id = dict(zip(words, range(len(words))))
     return word_to_id
 
 def _file_to_word_ids(filename, word_to_id):
     data = _read_words(filename)
-    return [word_to_id[word] for word in data if word in word_to_id]
+    return [word_to_id[word] if word in word_to_id else 9999 for word in data ] ### modified: 9999 for <unk>
 
 def ptb_raw_data(data_path=None):
     train_path = os.path.join(data_path, "train.txt")

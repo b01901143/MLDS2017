@@ -1,3 +1,8 @@
+from parse import *
+from parse_question import *
+
+read_data("./data/raw/Holmes/", small = True)
+
 #path setting
 in_file_path = "./data/raw/cut/big.txt"
 out_file_path = "./data/sets/cut/"
