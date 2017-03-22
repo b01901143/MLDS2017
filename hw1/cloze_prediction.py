@@ -2,28 +2,9 @@ import reader
 import numpy as np
 import tensorflow as tf
 import divide
-import word2vec as w2v
+# import word2vec as w2v
 from parse_question import *
 from preprocessing import *
-
-test_datasets, test_optionsets = get_questions(), get_options()
-
-testing_data_batches, testing_num_batch = generate_testing_batches(test_datasets, test_optionsets)
-
-
-#path
-data_path = "./data/sets/cut/"
-save_path = "./save/"
-
-#data
-raw_data = reader.ptb_raw_data(data_path)
-train_data, valid_data, test_data, word_to_id, _ = raw_data
-
-
-for i in range(len(testing_data_batches)):
-	for j in range(len(testing_data_batches[i])):
-		testing_data_batches[i,j] = [word_to_id[word] if word in word_to_id else 9999 for word in testing_data_batches[i,j] ]
-
 
 #vocabulary
 num_vocabulary = 10000
@@ -32,7 +13,7 @@ num_vocabulary = 10000
 initial_scale = 0.1
 
 #embedding layer
-pretrainEmbd=w2v.embd_table()
+# pretrainEmbd=w2v.embd_table()
 pretrained=None
 
 #dropout_layer
@@ -51,10 +32,35 @@ learning_rate_decay_param = 4
 max_grad_norm = 5
 
 #batch, epoch
-num_epoch = 2
+num_epoch = 1
 train_batch_size = valid_batch_size = 20
 train_num_steps = valid_num_steps = 5
 test_batch_size = test_num_steps = 5
+
+
+#path
+data_path = "./data/sets/cut/"
+save_path = "./save/"
+
+#data
+raw_data = reader.ptb_raw_data(data_path)
+train_data, valid_data, test_data, word_to_id, _ = raw_data
+
+#testing data
+
+
+test_datasets, test_optionsets = get_questions(), get_options()
+testing_data_batches, testing_num_batch = generate_testing_batches(test_datasets, test_optionsets)
+
+for i in range(len(testing_data_batches)):
+	for j in range(len(testing_data_batches[i])):
+		testing_data_batches[i,j] = [word_to_id[word] if word in word_to_id else 9999 for word in testing_data_batches[i,j] ]
+
+# zero_padding = np.zeros((test_num_steps, 6),dtype=np.int)
+# test_data =  np.hstack(  ( zero_padding, np.reshape( np.swapaxes(testing_data_batches, 0, 1), [test_num_steps, -1] ) )  )
+test_data = np.reshape( np.swapaxes(testing_data_batches, 0, 1), -1 )
+
+
 
 def embedding_layer(x):
 # if pretrained x are id, otherwise words
@@ -84,9 +90,7 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
     fetch_dict = {
         "logits": model_figure.logits,
         "cost": model_figure.cost,
-        "data": input_figure.data,
-        "data_r": input_figure.data_r,
-        "label": input_figure.labels
+        "cost_vector": model_figure.cost_vector
     }
     if is_training == True:
         fetch_dict["train_optimizer"] = model_figure.train_optimizer
@@ -96,12 +100,12 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
             feed_dict[c] = initial_state[i].c
             feed_dict[h] = initial_state[i].h
         track_dict = session.run(fetch_dict, feed_dict)
-        # print track_dict["data_r"], "d_r"
+
+
+        # print track_dict["cost_vector"], "c_v"
         # raw_input()
-        # print track_dict["data"], "d"
-        # raw_input()
-        # print track_dict["label"], "l"
-        # raw_input()
+        
+
         total_cost_per_epoch += track_dict["cost"]
         total_num_steps_per_epoch += input_figure.num_steps
         if is_training and batch % (input_figure.num_batch // 10) == 10:
@@ -114,7 +118,10 @@ class InputFigure(object):
         self.batch_size = batch_size
         self.num_steps = num_steps
         self.num_batch = ((len(data) // batch_size) - 1) // num_steps
-        self.data, self.labels, self.data_r = reader.ptb_producer(data, batch_size, num_steps, name)
+        if name == "TestInputFigure":
+        	self.data, self.labels, self.data_r = reader.ptb_producer_test(data, batch_size, num_steps, name)
+        else:
+        	self.data, self.labels, self.data_r = reader.ptb_producer(data, batch_size, num_steps, name)
 
 class ModelFigure(object):
     def __init__(self, input_figure, is_training=False):
@@ -145,6 +152,7 @@ class ModelFigure(object):
             [tf.ones([input_figure.batch_size * input_figure.num_steps], dtype=tf.float32)]
         )
         self.cost = tf.reduce_sum(loss) / input_figure.batch_size
+        self.cost_vector = loss
         if is_training == False:
             return
         self.lr = tf.Variable(0.0, trainable=False)
@@ -177,6 +185,9 @@ with tf.Graph().as_default():
             test_model_figure = ModelFigure(input_figure=test_input_figure, is_training=False)
     sv = tf.train.Supervisor(logdir=save_path)
     with sv.managed_session() as session:
+    	test_perplexity = run_epoch(session, test_input_figure, test_model_figure)
+        print("Test Perplexity: %.3f" % test_perplexity)
+        raw_input()
         for i in range(num_epoch):
             session.run(train_model_figure.assign_new_lr, feed_dict={train_model_figure.new_lr: learning_rate * (learning_rate_decay ** max(i + 1 - learning_rate_decay_param, 0.0))})
             print("Epoch: %d Learning rate: %.3f" % (i + 1, session.run(train_model_figure.lr)))
