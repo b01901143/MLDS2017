@@ -2773,37 +2773,4 @@
 <start> <start> then growing grave again she pointed to the other sheet <end> <end> 
 <start> <start> i dont know who that comes from she said <end> <end> 
 <start> <start> there was no signature at all this time but the handwriting was the same as that which had told me of the snare in the summerhouse it was antoinette de maubans <end> <end> 
-<start> <start> i have no cause to love you it ran but god forbid that you should fall into the power of the duke <end> <end> 
-<start> <start> go nowhere without a large guarda regiment is not too much to make you safe <end> <end> 
-<start> <start> show this if you can to him who reigns in strelsau <end> <end> 
-<start> <start> asked flavia leaning over my shoulder so that the ripple of her hair played on my cheek <end> <end> 
-<start> <start> as you value life and more than life my queen i said obey it to the very letter <end> <end> 
-<start> <start> a regiment shall camp round your house today <end> <end> 
-<start> <start> see that you do not go out unless well guarded <end> <end> 
-<start> <start> she cried and i could not but kiss her <end> <end> 
-<start> <start> it is from a good friendand i fear an unhappy woman <end> <end> 
-<start> <start> you must be ill flavia and unable to go to zenda <end> <end> 
-<start> <start> make your excuses as cold and formal as you like <end> <end> 
-<start> <start> so you feel strong enough to anger michael <end> <end> 
-<start> <start> im strong enough for anything while you are safe said i <end> <end> 
-<start> <start> soon i tore myself away from her and then without consulting sapt i took my way to the house of marshal strakencz <end> <end> 
-<start> <start> i had seen something of the old general and i liked and trusted him <end> <end> 
-<start> <start> sapt was less enthusiastic but i had learnt by now that sapt was best pleased when he could do everything and jealousy played some part in his views <end> <end> 
-<start> <start> as things were now i had more work than sapt and fritz could manage for they must come with me to zenda and i wanted a man to guard what i loved most in all the world and suffer me to set about my task of releasing the king with a quiet mind <end> <end> 
-<start> <start> the marshal received me with most loyal kindness <end> <end> 
-<start> <start> to some extent i took him into my confidence <end> <end> 
-<start> <start> i charged him with the care of the princess looking him full and significantly in the face as i bade him let no one from her cousin the duke approach her unless he himself were there and a dozen of his men with him <end> <end> 
-<start> <start> you may be right sire said he shaking his grey head sadly <end> <end> 
-<start> <start> i have known better men than the duke do worse things than that for love <end> <end> 
-<start> <start> loves for the heart is there nothing my brother might like for his head <end> <end> 
-<start> <start> marshal im leaving strelsau for a few days <end> <end> 
-<start> <start> every evening i will send a courier to you <end> <end> 
-<start> <start> if for three days none comes you will publish an order which i will give you depriving duke michael of the governorship of strelsau and appointing you in his place <end> <end> 
-<start> <start> then you will send word to michael that you demand an audience of the kingyou follow me <end> <end> 
-<start> <start> if he does not produce the king i laid my hand on his knee then the king is dead and you will proclaim the next heir <end> <end> 
-<start> <start> and swear to me on your faith and honour and by the fear of the living god that you will stand by her to the death and kill that reptile and seat her where i sit now <end> <end> 
-<start> <start> on my faith and honour and by the fear of god i swear it <end> <end> 
-<start> <start> and may almighty god preserve your majesty for i think that you go on an errand of danger <end> <end> 
-<start> <start> i hope that no life more precious than mine may be demanded said i rising <end> <end> 
-<start> <start> then i held out my hand to him <end> <end> 
-<start> <start> marshal i said in days to come it may bei know not that you will hear strange things of the man who speaks to you now <end> <end> 
+<start> <start> i have no cause to love you it ran but god forbid that you should fall into t

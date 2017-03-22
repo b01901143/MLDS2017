@@ -1,6 +1,6 @@
 from parse import *
 
-read_data("./data/raw/Holmes/", small = True)
+read_data("./data/raw/Holmes/", small = False)
 
 #path setting
 in_file_path = "./data/raw/cut/big.txt"
@@ -14,7 +14,7 @@ test_file = open(out_file_path + "test.txt", "w")
 
 #in_data
 in_data = in_file.readlines()
-train_data = in_data[:len(in_data)*4/5]
+train_data = in_data[:]
 valid_data = in_data[len(in_data)*4/5:len(in_data)*9/10]
 test_data = in_data[len(in_data)*9/10:]
 
