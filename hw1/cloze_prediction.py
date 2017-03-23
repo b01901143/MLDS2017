@@ -126,8 +126,10 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
         total_cost_per_epoch += track_dict["cost"]
         total_num_steps_per_epoch += input_figure.num_steps
         if is_training and batch % (input_figure.num_batch // 10) == 10:
-            # print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))
-            print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(answer_cost / total_num_steps_per_epoch)))
+            if input_figure.name == "TestInputFigure":
+                print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(answer_cost / total_num_steps_per_epoch)))
+            else:
+                print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))	
 
     if input_figure.name == "TestInputFigure":
 	    for idx in range(len(answers)):
@@ -209,8 +211,8 @@ with tf.Graph().as_default():
             test_model_figure = ModelFigure(input_figure=test_input_figure, is_training=False)
     sv = tf.train.Supervisor(logdir=save_path)
     with sv.managed_session() as session:
-    	test_perplexity = run_epoch(session, test_input_figure, test_model_figure)
-        print("Test Perplexity: %.3f" % test_perplexity)
+    	# test_perplexity = run_epoch(session, test_input_figure, test_model_figure)
+     #    print("Test Perplexity: %.3f" % test_perplexity)
         for i in range(num_epoch):
             session.run(train_model_figure.assign_new_lr, feed_dict={train_model_figure.new_lr: learning_rate * (learning_rate_decay ** max(i + 1 - learning_rate_decay_param, 0.0))})
             print("Epoch: %d Learning rate: %.3f" % (i + 1, session.run(train_model_figure.lr)))
