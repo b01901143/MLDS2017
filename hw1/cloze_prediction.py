@@ -11,7 +11,7 @@ num_vocabulary = reader.num_vocabulary
 #defined in reader!!!
 
 #initializer
-initial_scale = 0.1
+initial_scale = 0.05
 
 #embedding layer
 # pretrainEmbd=w2v.embd_table()
@@ -19,22 +19,22 @@ pretrained=None
 
 #dropout_layer
 input_keep_prob = 1.0
-output_keep_prob = 1.0
+output_keep_prob = 0.5
 
 #hidden_layer
-num_units = 200
+num_units = 256
 forget_bias = 0.0
 num_layers = 2
 
 #learning_rate
 learning_rate = 1.0
-learning_rate_decay = 0.5
-learning_rate_decay_param = 4
+learning_rate_decay = 0.8
+learning_rate_decay_param = 1
 max_grad_norm = 5
 
 #batch, epoch
-num_epoch = 2
-train_batch_size = valid_batch_size = 20
+num_epoch = 5
+train_batch_size = valid_batch_size = 32
 train_num_steps = valid_num_steps = 5
 test_batch_size = test_num_steps = 5
 
@@ -114,10 +114,11 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
 
         	
 	        cost_vector = []
+	        answer_cost = 0.
 	        for idx in range(5):
 				cost_vector.append( np.sum(track_dict["cost_vector"][5*idx: 5*idx+5]) / input_figure.batch_size )
 	        answers.append( str(chr(97 + np.argmin(cost_vector))) )
-
+	        answer_cost += np.min(cost_vector)
 			
 	        f_out = open("ans_with_cost.csv", 'w') 
 	        f_out.write("id,answer\n")
@@ -125,7 +126,8 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
         total_cost_per_epoch += track_dict["cost"]
         total_num_steps_per_epoch += input_figure.num_steps
         if is_training and batch % (input_figure.num_batch // 10) == 10:
-            print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))
+            # print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))
+            print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(answer_cost / total_num_steps_per_epoch)))
 
     if input_figure.name == "TestInputFigure":
 	    for idx in range(len(answers)):
