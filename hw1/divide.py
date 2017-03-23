@@ -10,7 +10,7 @@ out_file_path = "./data/sets/cut/"
 in_file = open(in_file_path, "r")
 train_file = open(out_file_path + "train.txt", "w")
 valid_file = open(out_file_path + "valid.txt", "w")
-test_file = open(out_file_path + "test.txt", "w")
+# test_file = open(out_file_path + "test.txt", "w")
 
 #in_data
 in_data = in_file.readlines()
@@ -23,6 +23,6 @@ for d in train_data:
 	train_file.write(d)
 for d in valid_data:
 	valid_file.write(d)
-for d in test_data:
-	test_file.write(d)
+# for d in test_data:
+# 	test_file.write(d)
 

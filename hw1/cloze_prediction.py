@@ -111,12 +111,11 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
         if input_figure.name == "TestInputFigure":
 
         	logits = track_dict["logits"]
-        	print len(logits)
-        	raw_input()
+
         	
 	        cost_vector = []
 	        for idx in range(5):
-				cost_vector.append( np.sum(track_dict["cost_vector"][5*idx: 5*idx+5]) )
+				cost_vector.append( np.sum(track_dict["cost_vector"][5*idx: 5*idx+5]) / input_figure.batch_size )
 	        answers.append( str(chr(97 + np.argmin(cost_vector))) )
 
 			
