@@ -66,7 +66,7 @@ def read_data(mypath, small = True):
 						if not i - pivot_pre > 6:
 							pivot_pre = i+1 # !!!!!!!!!!!!!
 							continue
-						temp = (map(str,"<start> <start>".split()) + words[pivot_pre : i+1] + map(str,"<end> <end>".split()))
+						temp = (words[pivot_pre : i+1] + map(str,"<end>".split()))
 
 						train_data.append(temp)
 

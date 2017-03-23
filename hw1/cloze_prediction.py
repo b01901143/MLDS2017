@@ -109,6 +109,10 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
         track_dict = session.run(fetch_dict, feed_dict)
 
         if input_figure.name == "TestInputFigure":
+
+        	logits = track_dict["logits"]
+        	print len(logits)
+        	raw_input()
         	
 	        cost_vector = []
 	        for idx in range(5):
@@ -204,7 +208,8 @@ with tf.Graph().as_default():
             test_model_figure = ModelFigure(input_figure=test_input_figure, is_training=False)
     sv = tf.train.Supervisor(logdir=save_path)
     with sv.managed_session() as session:
-    	
+    	test_perplexity = run_epoch(session, test_input_figure, test_model_figure)
+        print("Test Perplexity: %.3f" % test_perplexity)
         for i in range(num_epoch):
             session.run(train_model_figure.assign_new_lr, feed_dict={train_model_figure.new_lr: learning_rate * (learning_rate_decay ** max(i + 1 - learning_rate_decay_param, 0.0))})
             print("Epoch: %d Learning rate: %.3f" % (i + 1, session.run(train_model_figure.lr)))

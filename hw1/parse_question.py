@@ -19,7 +19,7 @@ def get_questions():
 				del words[i]
 			else:
 				i += 1
-		questions.append(map(str,"<start> <start>".split()) + words + map(str,"<end> <end>".split()))
+		questions.append( words + map(str,"<end>".split()))
 	for idx in range(0,len(questions)):
 		for j in range(0,len(questions[idx])):
 			if questions[idx][j] == '_____':
