@@ -1,10 +1,15 @@
 import reader
 import numpy as np
 import tensorflow as tf
-import divide
+import sys
+if sys.argv[1] == "--reparse":
+	print "re-generating training data ..."
+	import divide
 # import word2vec as w2v
 from parse_question import *
 from preprocessing import *
+
+
 
 #vocabulary
 num_vocabulary = reader.num_vocabulary
