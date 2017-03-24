@@ -3,7 +3,7 @@ import tensorflow as tf
 from os import listdir
 from os.path import isfile, join
 
-def read_data(mypath, small = True):
+def read_data(mypath, num_steps, small = True):
 	num = 0
 	files = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 	train_data = []
@@ -66,7 +66,14 @@ def read_data(mypath, small = True):
 						if not i - pivot_pre > 6:
 							pivot_pre = i+1 # !!!!!!!!!!!!!
 							continue
-						temp = (words[pivot_pre : i+1] + map(str,"<end>".split()))
+						setence_cur = list(words[pivot_pre : i+1])
+
+						temp = []
+						for idx in range(num_steps+1):
+							if idx < len(setence_cur):
+								temp.append(setence_cur[idx])
+							else:
+								temp.append('<end>')
 
 						train_data.append(temp)
 

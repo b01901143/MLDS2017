@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import sys
 import divide
-# import word2vec as w2v
+import word2vec as w2v
 from parse_question import *
 from preprocessing import *
 
@@ -17,8 +17,8 @@ num_vocabulary = reader.num_vocabulary
 initial_scale = 0.05
 
 #embedding layer
-# pretrainEmbd=w2v.embd_table()
-pretrained=None
+pretrainEmbd=w2v.embd_table()
+pretrained=True
 
 #dropout_layer
 input_keep_prob = 1.0
@@ -47,8 +47,7 @@ data_path = "./data/sets/cut/"
 save_path = "./save/"
 
 #data
-# raw_data = reader.ptb_raw_data(data_path,pretrained,pretrainEmbd._word2id)
-raw_data = reader.ptb_raw_data(data_path)
+raw_data = reader.ptb_raw_data(data_path,pretrained,pretrainEmbd._word2id)
 train_data, valid_data, test_data, word_to_id, _ = raw_data
 
 if sys.argv[1] == "--reparse":
@@ -76,7 +75,7 @@ def embedding_layer(x):
         embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="embedding_weights")
         embed = tf.nn.embedding_lookup(embedding_weights, x)
     else:
-		embed = tf.nn.embedding_lookup(pretrainEmbd.lookupEmbd(),x)
+        embed = [pretrainEmbd.lookupEmbd(x)]
     return embed
 
 def lstm_cell():
