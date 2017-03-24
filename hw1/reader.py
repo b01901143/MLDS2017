@@ -59,7 +59,7 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
         assertion = tf.assert_positive(epoch_size, message="epoch_size == 0, decrease batch_size or num_steps")
         with tf.control_dependencies([assertion]):
             epoch_size = tf.identity(epoch_size, name="epoch_size")
-        i = tf.train.range_input_producer(epoch_size, shuffle=True).dequeue()
+        i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()
         x = tf.strided_slice(data, [i * batch_size, 0], [(i + 1) * batch_size, num_steps])
         x.set_shape([batch_size, num_steps])
         y = tf.strided_slice(data, [i * batch_size, 1], [(i + 1) * batch_size, num_steps+1])

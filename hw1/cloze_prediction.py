@@ -53,7 +53,7 @@ train_data, valid_data, test_data, word_to_id, _ = raw_data
 
 if sys.argv[1] == "--reparse":
 	print "re-generating training data ..."
-	divide.reparse()
+	divide.reparse(train_num_steps)
 
 #testing data
 
@@ -113,6 +113,11 @@ def run_epoch(epoch, session, input_figure, model_figure, is_training=False):
             feed_dict[c] = initial_state[i].c
             feed_dict[h] = initial_state[i].h
         track_dict = session.run(fetch_dict, feed_dict)
+
+        # print track_dict["x"]
+        # raw_input()
+        # print track_dict["y_"]
+        # raw_input()
 
         if input_figure.name == "TestInputFigure":
 
