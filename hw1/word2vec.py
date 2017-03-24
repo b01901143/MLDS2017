@@ -47,7 +47,7 @@ class embd_table:
 		self._embd= embd
 		self._word2id = word_dic
 		self._word2id['<end>']=71291
-		self._embd=np.append(self._embd,np.full((embd_size),1,dtype=np.float32))
+		self._embd=np.append(self._embd,np.full((embd_size),0.0,dtype=np.float32))
 		#print(self._embd.shape)
 		#tf.global_variables_initializer().run()
 	def lookupId(self, words):
@@ -59,7 +59,7 @@ class embd_table:
 	
 			
 		return embd
-'''
+
 table=embd_table()
 test=table.lookupId(['no','pig','<end>','is'])
 print (test)
@@ -73,4 +73,4 @@ with tf.Session() as sess:
 	_=embed.eval()
 	print(_[71291])
 	print(_.shape)
-'''	
+	
