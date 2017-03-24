@@ -18,26 +18,26 @@ initial_scale = 0.05
 
 #embedding layer
 pretrainEmbd=w2v.embd_table()
-pretrained=True
+pretrained=None
 
 #dropout_layer
 input_keep_prob = 1.0
 output_keep_prob = 0.65
 
 #hidden_layer
-num_units = 200
+num_units = 256
 forget_bias = 0.0
 num_layers = 1
 
 #learning_rate
-learning_rate = 0.7
+learning_rate = 0.001
 learning_rate_decay = 0.5
 learning_rate_decay_param = 1
 max_grad_norm = 5
 
 #batch, epoch
 num_epoch = 5
-train_batch_size = valid_batch_size = 128
+train_batch_size = valid_batch_size = 64
 train_num_steps = valid_num_steps = 20
 test_batch_size = test_num_steps = 5
 
@@ -54,7 +54,7 @@ if sys.argv[1] == "--reparse":
 # raw_data = reader.ptb_raw_data(data_path,pretrained,pretrainEmbd._word2id)
 raw_data = reader.ptb_raw_data(data_path)
 train_data, valid_data, test_data, word_to_id, _ = raw_data
-
+#print(word_to_id['no'])
 #testing data
 
 

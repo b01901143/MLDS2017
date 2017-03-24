@@ -64,6 +64,7 @@ class embd_table:
 	def lookupEmbd(self,word_2_id):
 		# return a list of embeddings
 		_embedding = np.zeros(shape=[num_vocabulary,embd_size],dtype=np.float32)
+		
 		for key , value in word_2_id.iteritems():
 			
 			_embedding[value]=self.embed[self.lookupId(key)]
@@ -73,16 +74,19 @@ class embd_table:
 			print (value)
 			print(_embedding[value])
 			'''
+		#print(_embedding[word_2_id['no']] )
+		#print(self.embed[self.lookupId('no')])
 		embd = tf.constant(_embedding,shape=[num_vocabulary,embd_size], dtype=tf.float32)
 	
 			
 		return embd
 
-
+'''
 table=embd_table()
 #test=table.lookupId(['no','pig','<end>','is'])
 #print (test)
 embed=table.lookupEmbd({'pig':0,'<end>':1})
+'''
 '''
 with tf.Session() as sess:
 	tf.global_variables_initializer().run()
