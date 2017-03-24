@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import sys
 import divide
-# import word2vec as w2v
+import word2vec as w2v
 from parse_question import *
 from preprocessing import *
 
@@ -17,28 +17,28 @@ num_vocabulary = reader.num_vocabulary
 initial_scale = 0.05
 
 #embedding layer
-# pretrainEmbd=w2v.embd_table()
-pretrained=None
+pretrainEmbd=w2v.embd_table()
+pretrained=True
 
 #dropout_layer
 input_keep_prob = 1.0
 output_keep_prob = 0.5
 
 #hidden_layer
-num_units = 256
+num_units = 200
 forget_bias = 0.0
-num_layers = 2
+num_layers = 1
 
 #learning_rate
-learning_rate = 1.0
-learning_rate_decay = 0.8
+learning_rate = 0.5
+learning_rate_decay = 0.5
 learning_rate_decay_param = 1
 max_grad_norm = 5
 
 #batch, epoch
 num_epoch = 5
-train_batch_size = valid_batch_size = 32
-train_num_steps = valid_num_steps = 5
+train_batch_size = valid_batch_size = 20
+train_num_steps = valid_num_steps = 20
 test_batch_size = test_num_steps = 5
 
 
@@ -47,7 +47,7 @@ data_path = "./data/sets/cut/"
 save_path = "./save/"
 
 #data
-raw_data = reader.ptb_raw_data(data_path)
+raw_data = reader.ptb_raw_data(data_path,pretrained)
 train_data, valid_data, test_data, word_to_id, _ = raw_data
 
 if sys.argv[1] == "--reparse":
@@ -62,7 +62,10 @@ testing_data_batches, testing_num_batch = generate_testing_batches(test_datasets
 
 for i in range(len(testing_data_batches)):
 	for j in range(len(testing_data_batches[i])):
-		testing_data_batches[i,j] = [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in testing_data_batches[i,j] ]
+		if pretrained == None:
+			testing_data_batches[i,j] = [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in testing_data_batches[i,j] ]
+		else:
+			testing_data_batches[i,j] = [words[word] if word in words else '<unk>' for word in test_data_batches[i,j]  ]
 
 
 # zero_padding = np.zeros((test_num_steps, 6),dtype=np.int)
@@ -119,14 +122,14 @@ def run_epoch(epoch, session, input_figure, model_figure, is_training=False):
 
         	logits = track_dict["logits"]
 
-        	
+
 	        cost_vector = []
 	        answer_cost = 0.
 	        for idx in range(5):
 				cost_vector.append( np.sum(track_dict["cost_vector"][5*idx: 5*idx+5]) / input_figure.batch_size )
 	        answers.append( str(chr(97 + np.argmin(cost_vector))) )
 	        answer_cost += np.min(cost_vector)
-			
+
 
         total_cost_per_epoch += track_dict["cost"]
         total_num_steps_per_epoch += input_figure.num_steps
@@ -134,15 +137,15 @@ def run_epoch(epoch, session, input_figure, model_figure, is_training=False):
             if input_figure.name == "TestInputFigure":
                 print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(answer_cost / total_num_steps_per_epoch)))
             else:
-                print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))	
+                print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))
 
     if input_figure.name == "TestInputFigure":
 
-        f_out = open("_ans_epoch_" + str(epoch) + "_" + str(np.exp(total_cost_per_epoch / total_num_steps_per_epoch)) + ".csv", 'w') 
-        f_out.write("id,answer\n")  
+        f_out = open("_ans_epoch_" + str(epoch) + "_" + str(np.exp(total_cost_per_epoch / total_num_steps_per_epoch)) + ".csv", 'w')
+        f_out.write("id,answer\n")
         for idx in range(len(answers)):
-        	f_out.write(str(idx+1)+","+answers[idx]+"\n")	
-        f_out.close()    
+        	f_out.write(str(idx+1)+","+answers[idx]+"\n")
+        f_out.close()
     return np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
 
 class InputFigure(object):
@@ -203,6 +206,7 @@ class ModelFigure(object):
 with tf.Graph().as_default():
     initializer = tf.random_uniform_initializer(-initial_scale, initial_scale)
     with tf.name_scope("Train"):
+        print("build train model")
         train_input_figure = InputFigure(train_data, train_batch_size, train_num_steps, "TrainInputFigure")
         with tf.variable_scope("Model", reuse=None, initializer=initializer):
             train_model_figure = ModelFigure(input_figure=train_input_figure, is_training=True)

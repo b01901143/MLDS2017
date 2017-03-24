@@ -31,25 +31,38 @@ def _build_vocab_no_id(filename):
 def _file_to_word_ids(filename, word_to_id):
     data = _read_words(filename)
     return [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in data ] ### modified: 9999 for <unk>
+def _file_to_word (filename, words):
+	data = _read_words(filename)
+	return [word if word in words else '<unk>' for word in data]
 
 def _list_to_word_ids(data, word_to_id):
     return [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in data ] ### modified: 9999 for <unk>
 
-def ptb_raw_data(data_path=None):
+def ptb_raw_data(data_path=None,pretrained=None):
     train_path = os.path.join(data_path, "train.txt")
     valid_path = os.path.join(data_path, "valid.txt")
     test_path = os.path.join(data_path, "test.txt")
     word_to_id = _build_vocab(train_path)
-    train_data = _file_to_word_ids(train_path, word_to_id)
-    valid_data = _file_to_word_ids(valid_path, word_to_id)
-    test_data = _file_to_word_ids(test_path, word_to_id)
-    vocabulary = len(word_to_id)
+    train_data_id = _file_to_word_ids(train_path, word_to_id)
+    valid_data_id = _file_to_word_ids(valid_path, word_to_id)
+    test_data_id = _file_to_word_ids(test_path, word_to_id)
+    vocabulary_id = len(word_to_id)
+	
+	words = _build_vocab_no_id(train_path)
+	train_data=   _file_to_word(train_path, words)
+	valid_data=   _file_to_word(valid_path,words)
+	test_data = _file_to_word(test_path,words)
+	raw_data=[]
+	if pretrained == None:
+		raw_data=[train_data_id, valid_data_id, test_data_id, word_to_id, vocabulary_id] 
+	else:
+		raw_data=[train_data, valid_data, test_data, words, vocabulary_id ]
     # f_out = open("log.txt" , "w")
     # for d in train_data:
     #     f_out.write(str(d)+" ")
-    return train_data, valid_data, test_data, word_to_id, vocabulary
+    return raw_data
 
-def ptb_producer(raw_data, batch_size, num_steps, name=None):
+def ptb_producer(raw_data, batch_size, num_steps, name=None ):
     with tf.name_scope(name, "PTBProducer", [raw_data, batch_size, num_steps]):
         raw_data = tf.convert_to_tensor(raw_data, name="raw_data", dtype=tf.int32)
         data_len = tf.size(raw_data)
@@ -66,7 +79,7 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
         y.set_shape([batch_size, num_steps])
         return x, y, i
 
-def ptb_producer_test(raw_data, batch_size, num_steps, name=None):
+def ptb_producer_test(raw_data, batch_size, num_steps, name=None ):
     with tf.name_scope(name, "PTBProducer", [raw_data, batch_size, num_steps]):
         raw_data = tf.convert_to_tensor(raw_data, name="raw_data", dtype=tf.int32)
         data_len = tf.size(raw_data)
@@ -83,7 +96,7 @@ def ptb_producer_test(raw_data, batch_size, num_steps, name=None):
         y.set_shape([batch_size, num_steps])
         return x, y, i
 
-# test = _build_vocab_no_id(os.path.join("./data/sets/cut/","train.txt")) 
+# test = _build_vocab_no_id(os.path.join("./data/sets/cut/","train.txt"))
 # print(test[0])
 # print(test[1])
 # print(test[9999])
