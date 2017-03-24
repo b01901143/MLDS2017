@@ -47,7 +47,7 @@ data_path = "./data/sets/cut/"
 save_path = "./save/"
 
 #data
-raw_data = reader.ptb_raw_data(data_path,pretrained)
+raw_data = reader.ptb_raw_data(data_path,pretrained,pretrainEmbd._word2id)
 train_data, valid_data, test_data, word_to_id, _ = raw_data
 
 if sys.argv[1] == "--reparse":
@@ -62,12 +62,7 @@ testing_data_batches, testing_num_batch = generate_testing_batches(test_datasets
 
 for i in range(len(testing_data_batches)):
 	for j in range(len(testing_data_batches[i])):
-		if pretrained == None:
-			testing_data_batches[i,j] = [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in testing_data_batches[i,j] ]
-		else:
-			testing_data_batches[i,j] = [words[word] if word in words else '<unk>' for word in test_data_batches[i,j]  ]
-
-
+		testing_data_batches[i,j] = [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in testing_data_batches[i,j] ]
 # zero_padding = np.zeros((test_num_steps, 6),dtype=np.int)
 # test_data =  np.hstack(  ( zero_padding, np.reshape( np.swapaxes(testing_data_batches, 0, 1), [test_num_steps, -1] ) )  )
 test_data = np.reshape( np.swapaxes(testing_data_batches, 0, 1), -1 )
@@ -80,7 +75,7 @@ def embedding_layer(x):
         embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="embedding_weights")
         embed = tf.nn.embedding_lookup(embedding_weights, x)
     else:
-        embed = [pretrainEmbd.lookupEmbd(lookupId(x))]
+        embed = [pretrainEmbd.lookupEmbd(x)]
     return embed
 
 def lstm_cell():

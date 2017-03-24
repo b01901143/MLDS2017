@@ -8,16 +8,20 @@ def _read_words(filename):
     with tf.gfile.GFile(filename, "r") as f:
         return f.read().split()
 
-def _build_vocab(filename, pretrained=None): 
+def _build_vocab(filename, pretrained=None , id_dic):  
     data = _read_words(filename)
     counter = collections.Counter(data)
     count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
     count_pairs = count_pairs[:num_vocabulary-1]
     #||volcab|| = 10000,  9999 for <unk>
     words, _ = list(zip(*count_pairs))
-    word_to_id = dict(zip(words, range(len(words))))
+	if pretrained==None:
+        word_to_id = dict(zip(words, range(len(words))))
+	else:
+	    word_to_id = [id_dic(w) for w in words]
+	print (id_dic('<end>'))
     return word_to_id
-
+'''
 def _build_vocab_no_id(filename):
     data = _read_words(filename)
     counter = collections.Counter(data)
@@ -27,23 +31,21 @@ def _build_vocab_no_id(filename):
     words, _ = list(zip(*count_pairs))
     words=words+('<unk>',)
     return words
-
+'''
 def _file_to_word_ids(filename, word_to_id):
     data = _read_words(filename)
     return [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in data ] ### modified: 9999 for <unk>
-def _file_to_word (filename, words):
-	data = _read_words(filename)
-	return [word if word in words else '<unk>' for word in data]
+
 
 def _list_to_word_ids(data, word_to_id):
     return [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in data ] ### modified: 9999 for <unk>
 
-def ptb_raw_data(data_path=None):
+def ptb_raw_data(data_path=None , pretrained=None,id_dic):
     print("collecting data")
     train_path = os.path.join(data_path, "train.txt")
     valid_path = os.path.join(data_path, "valid.txt")
     test_path = os.path.join(data_path, "test.txt")
-    word_to_id = _build_vocab(train_path)
+    word_to_id = _build_vocab(train_path,pretrained,id_dic)
     train_data_id = _file_to_word_ids(train_path, word_to_id)
     valid_data_id = _file_to_word_ids(valid_path, word_to_id)
     test_data_id = _file_to_word_ids(test_path, word_to_id)
