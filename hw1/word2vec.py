@@ -49,18 +49,23 @@ class embd_table:
 		
 		self._word2id['<end>']=71291
 		self.embed=np.append(embd,[np.full((embd_size),0.0,dtype=np.float32)],axis=0)
+		'''
 		print(type(word_dic))
 		print(type(self._word2id))
 		print (embd.shape)
 		print (self.embed.shape)
+		'''
 		#print(self._embd.shape)
 		#tf.global_variables_initializer().run()
 	def lookupId(self, word):
-		return self._word2id[word]
+		_idx=self._word2id.get(word)
+		
+		return 0 if _idx==None else _idx
 	def lookupEmbd(self,word_2_id):
 		# return a list of embeddings
 		_embedding = np.zeros(shape=[num_vocabulary,embd_size],dtype=np.float32)
 		for key , value in word_2_id.iteritems():
+			
 			_embedding[value]=self.embed[self.lookupId(key)]
 			'''
 			print(self.lookupId(key))
