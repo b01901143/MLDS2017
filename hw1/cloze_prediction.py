@@ -2,9 +2,7 @@ import reader
 import numpy as np
 import tensorflow as tf
 import sys
-if sys.argv[1] == "--reparse":
-	print "re-generating training data ..."
-	import divide
+import divide
 # import word2vec as w2v
 from parse_question import *
 from preprocessing import *
@@ -39,7 +37,7 @@ max_grad_norm = 5
 
 #batch, epoch
 num_epoch = 5
-train_batch_size = valid_batch_size = 5
+train_batch_size = valid_batch_size = 32
 train_num_steps = valid_num_steps = 5
 test_batch_size = test_num_steps = 5
 
@@ -51,6 +49,10 @@ save_path = "./save/"
 #data
 raw_data = reader.ptb_raw_data(data_path)
 train_data, valid_data, test_data, word_to_id, _ = raw_data
+
+if sys.argv[1] == "--reparse":
+	print "re-generating training data ..."
+	divide.reparse()
 
 #testing data
 
