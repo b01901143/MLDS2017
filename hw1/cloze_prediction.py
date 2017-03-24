@@ -38,9 +38,15 @@ learning_rate_decay_param = 2
 max_grad_norm = 5
 
 #batch, epoch
+<<<<<<< HEAD
 num_epoch = 6
 train_batch_size = valid_batch_size = 20
 train_num_steps = valid_num_steps = 18
+=======
+num_epoch = 5
+train_batch_size = valid_batch_size = 5
+train_num_steps = valid_num_steps = 5
+>>>>>>> 350ee26d2e252df43580c701316ba8b78c1b3e22
 test_batch_size = test_num_steps = 5
 
 
@@ -90,7 +96,7 @@ def softmax_layer(x):
     product = tf.add(tf.matmul(x, softmax_weights), softmax_biases)
     return product
 
-def run_epoch(session, input_figure, model_figure, is_training=False):
+def run_epoch(epoch, session, input_figure, model_figure, is_training=False):
     total_cost_per_epoch = 0.0
     total_num_steps_per_epoch = 0
     initial_state = session.run(model_figure.initial_state)
@@ -124,9 +130,13 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
 				cost_vector.append( np.sum(track_dict["cost_vector"][5*idx: 5*idx+5]) / input_figure.batch_size )
 	        answers.append( str(chr(97 + np.argmin(cost_vector))) )
 	        answer_cost += np.min(cost_vector)
+<<<<<<< HEAD
 
 	        f_out = open("ans_with_cost.csv", 'w')
 	        f_out.write("id,answer\n")
+=======
+			
+>>>>>>> 350ee26d2e252df43580c701316ba8b78c1b3e22
 
         total_cost_per_epoch += track_dict["cost"]
         total_num_steps_per_epoch += input_figure.num_steps
@@ -137,9 +147,18 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
                 print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))
 
     if input_figure.name == "TestInputFigure":
+<<<<<<< HEAD
 	    for idx in range(len(answers)):
 	    	f_out.write(str(idx+1)+","+answers[idx]+"\n")
 	    f_out.close()
+=======
+
+        f_out = open("_ans_epoch_" + str(epoch) + "_" + str(np.exp(total_cost_per_epoch / total_num_steps_per_epoch)) + ".csv", 'w') 
+        f_out.write("id,answer\n")  
+        for idx in range(len(answers)):
+        	f_out.write(str(idx+1)+","+answers[idx]+"\n")	
+        f_out.close()    
+>>>>>>> 350ee26d2e252df43580c701316ba8b78c1b3e22
     return np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
 
 class InputFigure(object):
@@ -226,12 +245,12 @@ with tf.Graph().as_default():
         for i in range(num_epoch):
             session.run(train_model_figure.assign_new_lr, feed_dict={train_model_figure.new_lr: learning_rate * (learning_rate_decay ** max(i + 1 - learning_rate_decay_param, 0.0))})
             print("Epoch: %d Learning rate: %.3f" % (i + 1, session.run(train_model_figure.lr)))
-            train_perplexity = run_epoch(session, train_input_figure, train_model_figure, is_training=True)
+            train_perplexity = run_epoch(i,session, train_input_figure, train_model_figure, is_training=True)
             print("Epoch: %d Train Perplexity: %.3f" % (i + 1, train_perplexity))
-            valid_perplexity = run_epoch(session, valid_input_figure, valid_model_figure)
+            valid_perplexity = run_epoch(i,session, valid_input_figure, valid_model_figure)
             print("Epoch: %d Valid Perplexity: %.3f" % (i + 1, valid_perplexity))
-        test_perplexity = run_epoch(session, test_input_figure, test_model_figure)
-        print("Test Perplexity: %.3f" % test_perplexity)
+            test_perplexity = run_epoch(i,session, test_input_figure, test_model_figure)
+            print("Test Perplexity: %.3f" % test_perplexity)
         if save_path:
             print("Saving model to %s." % save_path)
             sv.saver.save(session, save_path, global_step=sv.global_step)

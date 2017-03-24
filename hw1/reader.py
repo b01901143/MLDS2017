@@ -59,7 +59,7 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
         assertion = tf.assert_positive(epoch_size, message="epoch_size == 0, decrease batch_size or num_steps")
         with tf.control_dependencies([assertion]):
             epoch_size = tf.identity(epoch_size, name="epoch_size")
-        i = tf.train.range_input_producer(epoch_size, shuffle=False).dequeue()
+        i = tf.train.range_input_producer(epoch_size, shuffle=True).dequeue()
         x = tf.strided_slice(data, [0, i * num_steps], [batch_size, (i + 1) * num_steps])
         x.set_shape([batch_size, num_steps])
         y = tf.strided_slice(data, [0, i * num_steps + 1], [batch_size, (i + 1) * num_steps + 1])
@@ -83,9 +83,9 @@ def ptb_producer_test(raw_data, batch_size, num_steps, name=None):
         y.set_shape([batch_size, num_steps])
         return x, y, i
 
-test = _build_vocab_no_id(os.path.join("./data/sets/cut/","train.txt")) 
-print(test[0])
-print(test[1])
-print(test[9999])
-print(len(test))
-print (type(test))
+# test = _build_vocab_no_id(os.path.join("./data/sets/cut/","train.txt")) 
+# print(test[0])
+# print(test[1])
+# print(test[9999])
+# print(len(test))
+# print (type(test))
