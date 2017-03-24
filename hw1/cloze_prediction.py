@@ -47,7 +47,7 @@ data_path = "./data/sets/cut/"
 save_path = "./save/"
 
 #data
-raw_data = reader.ptb_raw_data(data_path,pretrained,pretrainEmbd._word2id)
+raw_data = reader.ptb_raw_data(data_path=data_path,pretrained=pretrained,id_dic=pretrainEmbd._word2id)
 train_data, valid_data, test_data, word_to_id, _ = raw_data
 
 if sys.argv[1] == "--reparse":

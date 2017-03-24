@@ -39,6 +39,7 @@ id2embd = open('./id2embd','rb')
 
 word_dic= pickle.load(word2id)
 embd    = pickle.load(id2embd)
+embd_size =200
 class embd_table:
 	def __init__(self):
 		self._embd= embd
@@ -46,15 +47,21 @@ class embd_table:
 		self._word2id['<end>']=90000
 		#tf.global_variables_initializer().run()
 	def lookupId(self, words):
-		return self._word2id.get(words)
+		return [word_dic[w] for w in words]
 	def lookupEmbd(self,ids):
 		# return a list of embeddings
-        end_embd=np.full((200),1,dtype=np.float32)
-
-        return [self._embd[[id,0][id==None]] for id in ids]
+		end_embd=np.full((embd_size),1,dtype=np.float32)
+		embd = np.zeros(shape=[len(ids),embd_size], dtype=np.float32)
+		for idx , id  in enumerate(ids):
+			if id ==90000:
+				embd[idx]=end_embd
+			else:
+				embd[idx]=self._embd[ [id,0][id==None] ]
+			
+		return embd
 '''
 table=embd_table()
-test=table.lookupId(['<start>','pig','<end>','is'])
+test=table.lookupId(['no','pig','<end>','is'])
 print (test)
 embed=table.lookupEmbd(test)
 print (embed)
