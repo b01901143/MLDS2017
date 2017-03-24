@@ -32,6 +32,7 @@ from __future__ import division
 from __future__ import print_function
 
 import pickle
+import tensorflow as tf
 import numpy as np
 
 word2id = open('./word2id','rb')
@@ -39,31 +40,37 @@ id2embd = open('./id2embd','rb')
 
 word_dic= pickle.load(word2id)
 embd    = pickle.load(id2embd)
+vocab_size=71292
 embd_size =200
 class embd_table:
 	def __init__(self):
 		self._embd= embd
 		self._word2id = word_dic
-		self._word2id['<end>']=90000
+		self._word2id['<end>']=71291
+		self._embd=np.append(self._embd,np.full((embd_size),1,dtype=np.float32))
+		#print(self._embd.shape)
 		#tf.global_variables_initializer().run()
 	def lookupId(self, words):
 		return [word_dic[w] for w in words]
-	def lookupEmbd(self,ids):
+	def lookupEmbd(self):
 		# return a list of embeddings
-		end_embd=np.full((embd_size),1,dtype=np.float32)
-		embd = np.zeros(shape=[len(ids),embd_size], dtype=np.float32)
-		for idx , id  in enumerate(ids):
-			if id ==90000:
-				embd[idx]=end_embd
-			else:
-				embd[idx]=self._embd[ [id,0][id==None] ]
+		
+		embd = tf.constant(self._embd,shape=[71292,200], dtype=tf.float32)
+	
 			
 		return embd
 '''
 table=embd_table()
 test=table.lookupId(['no','pig','<end>','is'])
 print (test)
-embed=table.lookupEmbd(test)
+embed=table.lookupEmbd()
+print (embed)
 print (embed)
 print (embed.shape)
-'''
+
+with tf.Session() as sess:
+	tf.global_variables_initializer().run()
+	_=embed.eval()
+	print(_[71291])
+	print(_.shape)
+'''	

@@ -75,7 +75,7 @@ def embedding_layer(x):
         embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="embedding_weights")
         embed = tf.nn.embedding_lookup(embedding_weights, x)
     else:
-        embed = [pretrainEmbd.lookupEmbd(x)]
+		embed = tf.nn.embedding_lookup(pretrainEmbd.lookupEmbd(),x)
     return embed
 
 def lstm_cell():
