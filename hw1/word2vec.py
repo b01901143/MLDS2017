@@ -31,6 +31,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import reader.num_vocabulary
 import pickle
 import tensorflow as tf
 import numpy as np
@@ -52,14 +53,16 @@ class embd_table:
 		#tf.global_variables_initializer().run()
 	def lookupId(self, words):
 		return [word_dic[w] for w in words]
-	def lookupEmbd(self):
+	def lookupEmbd(self,word_2_id):
 		# return a list of embeddings
-		
-		embd = tf.constant(self._embd,shape=[71292,200], dtype=tf.float32)
+		_embedding = np.zeros(shape=[reader.num_vocabulary,embd_size],dtype=np.float32)
+		for key , value in word_2_id.iteritems
+			_embedding[value]=self._embd[self.lookupId(key)]
+		embd = tf.constant(_embedding,shape=[71292,200], dtype=tf.float32)
 	
 			
 		return embd
-
+'''
 table=embd_table()
 test=table.lookupId(['no','pig','<end>','is'])
 print (test)
@@ -74,3 +77,4 @@ with tf.Session() as sess:
 	print(_[71291])
 	print(_.shape)
 	
+'''
