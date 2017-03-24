@@ -43,36 +43,20 @@ class embd_table:
 	def __init__(self):
 		self._embd= embd
 		self._word2id = word_dic
+		self._word2id['<end>']=90000
 		#tf.global_variables_initializer().run()
 	def lookupId(self, words):
-		# return a list of word ids
-                ids = []
-                for w in words:
-                    if w=='<start>':
-                        ids.append(80000)
-                    elif w=='<end>':
-                        ids.append(90000)
-                    else:
-                        ids.append(self._word2id.get(w))
-		return ids
+		return self._word2id.get(words)
 	def lookupEmbd(self,ids):
 		# return a list of embeddings
-                embed=np.zeros(shape=(len(ids),200),dtype=np.float32)
-                start_embd=np.full((200),0,dtype=np.float32)
-                end_embd=np.full((200),1,dtype=np.float32)
-                for idx, id in enumerate (ids):
-                    if id== 80000:
-                        embed[idx]=start_embd
-                    elif id==90000:
-                        embed[idx]=end_embd
-                    else:
-                        embed[idx]=self._embd[[id,0][id==None]]
-                return embed
+        end_embd=np.full((200),1,dtype=np.float32)
 
+        return [self._embd[[id,0][id==None]] for id in ids]
+'''
 table=embd_table()
 test=table.lookupId(['<start>','pig','<end>','is'])
 print (test)
 embed=table.lookupEmbd(test)
 print (embed)
 print (embed.shape)
-
+'''

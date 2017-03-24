@@ -22,7 +22,7 @@ pretrained=True
 
 #dropout_layer
 input_keep_prob = 1.0
-output_keep_prob = 0.5
+output_keep_prob = 0.65
 
 #hidden_layer
 num_units = 200
@@ -213,14 +213,16 @@ with tf.Graph().as_default():
         tf.summary.scalar("Training Loss", train_model_figure.cost)
         tf.summary.scalar("Learning Rate", train_model_figure.lr)
     with tf.name_scope("Valid"):
-        valid_input_figure = InputFigure(valid_data, valid_batch_size, valid_num_steps, "ValidInputFigure")
-        with tf.variable_scope("Model", reuse=True, initializer=initializer):
-            valid_model_figure = ModelFigure(input_figure=valid_input_figure, is_training=False)
-        tf.summary.scalar("Validation Loss", valid_model_figure.cost)
+		print("build valid model")
+		valid_input_figure = InputFigure(valid_data, valid_batch_size, valid_num_steps, "ValidInputFigure")
+		with tf.variable_scope("Model", reuse=True, initializer=initializer):
+			valid_model_figure = ModelFigure(input_figure=valid_input_figure, is_training=False)
+		tf.summary.scalar("Validation Loss", valid_model_figure.cost)
     with tf.name_scope("Test"):
-        test_input_figure = InputFigure(test_data, test_batch_size, test_num_steps, "TestInputFigure")
-        with tf.variable_scope("Model", reuse=True, initializer=initializer):
-            test_model_figure = ModelFigure(input_figure=test_input_figure, is_training=False)
+		print("build test model")
+		test_input_figure = InputFigure(test_data, test_batch_size, test_num_steps, "TestInputFigure")
+		with tf.variable_scope("Model", reuse=True, initializer=initializer):
+			test_model_figure = ModelFigure(input_figure=test_input_figure, is_training=False)
     sv = tf.train.Supervisor(logdir=save_path)
     with sv.managed_session() as session:
     	# test_perplexity = run_epoch(session, test_input_figure, test_model_figure)
