@@ -39,7 +39,8 @@ max_grad_norm = 5
 num_epoch = 5
 train_batch_size = valid_batch_size = 64
 train_num_steps = valid_num_steps = 20
-test_batch_size = test_num_steps = 5
+test_batch_size = 5
+test_num_steps = 21 ####!!!!! has to be odd test_num_steps
 
 
 #path
@@ -58,12 +59,15 @@ train_data, valid_data, test_data, word_to_id, _ = raw_data
 #testing data
 
 
-test_datasets, test_optionsets = get_questions(), get_options()
-testing_data_batches, testing_num_batch = generate_testing_batches(test_datasets, test_optionsets)
+test_datasets, test_optionsets = get_questions(test_num_steps), get_options()
+testing_data_batches, testing_num_batch = generate_testing_batches(test_datasets, test_optionsets, test_num_steps)
+
 
 for i in range(len(testing_data_batches)):
 	for j in range(len(testing_data_batches[i])):
 		testing_data_batches[i,j] = [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in testing_data_batches[i,j] ]
+print testing_data_batches[0,:]
+raw_input()
 # zero_padding = np.zeros((test_num_steps, 6),dtype=np.int)
 # test_data =  np.hstack(  ( zero_padding, np.reshape( np.swapaxes(testing_data_batches, 0, 1), [test_num_steps, -1] ) )  )
 test_data = np.reshape( np.swapaxes(testing_data_batches, 0, 1), -1 )
@@ -226,7 +230,7 @@ with tf.Graph().as_default():
 			test_model_figure = ModelFigure(input_figure=test_input_figure, is_training=False)
     sv = tf.train.Supervisor(logdir=save_path)
     with sv.managed_session() as session:
-    	# test_perplexity = run_epoch(session, test_input_figure, test_model_figure)
+    	# test_perplexity = run_epoch(i, session, test_input_figure, test_model_figure)
      #    print("Test Perplexity: %.3f" % test_perplexity)
         for i in range(num_epoch):
             session.run(train_model_figure.assign_new_lr, feed_dict={train_model_figure.new_lr: learning_rate * (learning_rate_decay ** max(i + 1 - learning_rate_decay_param, 0.0))})

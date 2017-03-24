@@ -34,8 +34,8 @@ def read_data(mypath, num_steps, small = True):
 				head_count = int( float(length_eff) / 5 * 1)
 				stop_line = len(lines) - int( float(length_eff) / 5 * 1)
 				if small:
-					head_count = int( float(length_eff) / 555 * 277)
-					stop_line = len(lines) - int( float(length_eff) / 555 * 277)
+					head_count = int( float(length_eff) / 1555 * 777)
+					stop_line = len(lines) - int( float(length_eff) / 1555 * 777)
   		count = 0
 		words = map(str,sentence.split())
 		first_sentence = True

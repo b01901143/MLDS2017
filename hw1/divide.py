@@ -2,7 +2,7 @@ from parse import *
 
 def reparse(num_steps):
 
-	read_data("./data/raw/Holmes/", num_steps,  small = False)
+	read_data("./data/raw/Holmes/", num_steps,  small = True)
 
 	#path setting
 	in_file_path = "./data/raw/cut/big.txt"

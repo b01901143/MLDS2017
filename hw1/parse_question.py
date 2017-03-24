@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-def get_questions():
+def get_questions(test_num_steps):
 	questions = []
 	df = pd.read_csv("./data/test/testing_data.csv")
 	for item in df['question']:
@@ -19,12 +19,13 @@ def get_questions():
 				del words[i]
 			else:
 				i += 1
-		questions.append( words[:] + map(str,"<end> <end>".split()))
+		padding = "<end> " * (test_num_steps//2)
+		questions.append(map(str,padding.split()) + words[:] + map(str,padding.split()))
 	for idx in range(0,len(questions)):
 		for j in range(0,len(questions[idx])):
 			if questions[idx][j] == '_____':
 				questions[idx][j] = ' '
-				questions[idx] = questions[idx][j-2 : j+4]
+				questions[idx] = questions[idx][j-test_num_steps//2 : j+test_num_steps//2 +2]
 				break
 	return questions
 
