@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 import sys
 import divide
-import word2vec as w2v
+# import word2vec as w2v
 from parse_question import *
 from preprocessing import *
 
@@ -17,8 +17,8 @@ num_vocabulary = reader.num_vocabulary
 initial_scale = 0.05
 
 #embedding layer
-pretrainEmbd=w2v.embd_table()
-pretrained=True
+# pretrainEmbd=w2v.embd_table()
+pretrained=None
 
 #dropout_layer
 input_keep_prob = 1.0
@@ -47,12 +47,13 @@ data_path = "./data/sets/cut/"
 save_path = "./save/"
 
 #data
-raw_data = reader.ptb_raw_data(data_path,pretrained,pretrainEmbd._word2id)
+# raw_data = reader.ptb_raw_data(data_path,pretrained,pretrainEmbd._word2id)
+raw_data = reader.ptb_raw_data(data_path)
 train_data, valid_data, test_data, word_to_id, _ = raw_data
 
 if sys.argv[1] == "--reparse":
 	print "re-generating training data ..."
-	divide.reparse()
+	divide.reparse(train_num_steps)
 
 #testing data
 
@@ -75,7 +76,7 @@ def embedding_layer(x):
         embedding_weights = tf.get_variable(dtype=tf.float32, shape=[num_vocabulary, num_units], name="embedding_weights")
         embed = tf.nn.embedding_lookup(embedding_weights, x)
     else:
-        embed = [pretrainEmbd.lookupEmbd(x)]
+		embed = tf.nn.embedding_lookup(pretrainEmbd.lookupEmbd(),x)
     return embed
 
 def lstm_cell():
@@ -112,6 +113,11 @@ def run_epoch(epoch, session, input_figure, model_figure, is_training=False):
             feed_dict[c] = initial_state[i].c
             feed_dict[h] = initial_state[i].h
         track_dict = session.run(fetch_dict, feed_dict)
+
+        # print track_dict["x"]
+        # raw_input()
+        # print track_dict["y_"]
+        # raw_input()
 
         if input_figure.name == "TestInputFigure":
 

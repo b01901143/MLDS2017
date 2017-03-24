@@ -1,8 +1,8 @@
 from parse import *
 
-def reparse():
+def reparse(num_steps):
 
-	read_data("./data/raw/Holmes/", small = True)
+	read_data("./data/raw/Holmes/", num_steps,  small = True)
 
 	#path setting
 	in_file_path = "./data/raw/cut/big.txt"
