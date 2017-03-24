@@ -31,7 +31,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import reader.num_vocabulary
+from  reader import num_vocabulary
 import pickle
 import tensorflow as tf
 import numpy as np
@@ -45,36 +45,43 @@ vocab_size=71292
 embd_size =200
 class embd_table:
 	def __init__(self):
-		self._embd= embd
 		self._word2id = word_dic
+		
 		self._word2id['<end>']=71291
-		self._embd=np.append(self._embd,np.full((embd_size),0.0,dtype=np.float32))
+		self.embed=np.append(embd,[np.full((embd_size),0.0,dtype=np.float32)],axis=0)
+		print(type(word_dic))
+		print(type(self._word2id))
+		print (embd.shape)
+		print (self.embed.shape)
 		#print(self._embd.shape)
 		#tf.global_variables_initializer().run()
-	def lookupId(self, words):
-		return [word_dic[w] for w in words]
+	def lookupId(self, word):
+		return self._word2id[word]
 	def lookupEmbd(self,word_2_id):
 		# return a list of embeddings
-		_embedding = np.zeros(shape=[reader.num_vocabulary,embd_size],dtype=np.float32)
-		for key , value in word_2_id.iteritems
-			_embedding[value]=self._embd[self.lookupId(key)]
-		embd = tf.constant(_embedding,shape=[71292,200], dtype=tf.float32)
+		_embedding = np.zeros(shape=[num_vocabulary,embd_size],dtype=np.float32)
+		for key , value in word_2_id.iteritems():
+			_embedding[value]=self.embed[self.lookupId(key)]
+			'''
+			print(self.lookupId(key))
+			print (key)
+			print (value)
+			print(_embedding[value])
+			'''
+		embd = tf.constant(_embedding,shape=[num_vocabulary,embd_size], dtype=tf.float32)
 	
 			
 		return embd
-'''
-table=embd_table()
-test=table.lookupId(['no','pig','<end>','is'])
-print (test)
-embed=table.lookupEmbd()
-print (embed)
-print (embed)
-print (embed.shape)
 
+
+table=embd_table()
+#test=table.lookupId(['no','pig','<end>','is'])
+#print (test)
+embed=table.lookupEmbd({'pig':0,'<end>':1})
+'''
 with tf.Session() as sess:
 	tf.global_variables_initializer().run()
 	_=embed.eval()
-	print(_[71291])
+	print(_[1])
 	print(_.shape)
-	
 '''
