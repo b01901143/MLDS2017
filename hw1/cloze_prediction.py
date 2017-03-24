@@ -16,7 +16,7 @@ num_vocabulary = reader.num_vocabulary
 #defined in reader!!!
 
 #initializer
-initial_scale = 0.05
+initial_scale = 0.1
 
 #embedding layer
 # pretrainEmbd=w2v.embd_table()
@@ -24,23 +24,23 @@ pretrained=None
 
 #dropout_layer
 input_keep_prob = 1.0
-output_keep_prob = 0.5
+output_keep_prob = 1.0
 
 #hidden_layer
-num_units = 256
+num_units = 200
 forget_bias = 0.0
-num_layers = 2
+num_layers = 1
 
 #learning_rate
-learning_rate = 1.0
-learning_rate_decay = 0.8
-learning_rate_decay_param = 1
+learning_rate = 0.10
+learning_rate_decay = 0.3
+learning_rate_decay_param = 2
 max_grad_norm = 5
 
 #batch, epoch
-num_epoch = 5
-train_batch_size = valid_batch_size = 32
-train_num_steps = valid_num_steps = 5
+num_epoch = 6
+train_batch_size = valid_batch_size = 20
+train_num_steps = valid_num_steps = 18
 test_batch_size = test_num_steps = 5
 
 
@@ -117,15 +117,15 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
 
         	logits = track_dict["logits"]
 
-        	
+
 	        cost_vector = []
 	        answer_cost = 0.
 	        for idx in range(5):
 				cost_vector.append( np.sum(track_dict["cost_vector"][5*idx: 5*idx+5]) / input_figure.batch_size )
 	        answers.append( str(chr(97 + np.argmin(cost_vector))) )
 	        answer_cost += np.min(cost_vector)
-			
-	        f_out = open("ans_with_cost.csv", 'w') 
+
+	        f_out = open("ans_with_cost.csv", 'w')
 	        f_out.write("id,answer\n")
 
         total_cost_per_epoch += track_dict["cost"]
@@ -134,12 +134,12 @@ def run_epoch(session, input_figure, model_figure, is_training=False):
             if input_figure.name == "TestInputFigure":
                 print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(answer_cost / total_num_steps_per_epoch)))
             else:
-                print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))	
+                print("%.3f perplexity: %.3f" % (batch * 1.0 / input_figure.num_batch, np.exp(total_cost_per_epoch / total_num_steps_per_epoch)))
 
     if input_figure.name == "TestInputFigure":
 	    for idx in range(len(answers)):
-	    	f_out.write(str(idx+1)+","+answers[idx]+"\n")	
-	    f_out.close()    
+	    	f_out.write(str(idx+1)+","+answers[idx]+"\n")
+	    f_out.close()
     return np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
 
 class InputFigure(object):
@@ -189,6 +189,7 @@ class ModelFigure(object):
         self.lr = tf.Variable(0.0, trainable=False)
         trainable_variables = tf.trainable_variables()
         gradients, _ = tf.clip_by_global_norm(tf.gradients(self.cost, trainable_variables), max_grad_norm)
+        #self.train_optimizer = tf.train.AdamOptimizer(learning_rate=self.lr).minimize(self.cost)
         optimizer = tf.train.GradientDescentOptimizer(self.lr)
         self.train_optimizer = optimizer.apply_gradients(
             zip(gradients, trainable_variables),
@@ -200,17 +201,20 @@ class ModelFigure(object):
 with tf.Graph().as_default():
     initializer = tf.random_uniform_initializer(-initial_scale, initial_scale)
     with tf.name_scope("Train"):
+        print("generate train model")
         train_input_figure = InputFigure(train_data, train_batch_size, train_num_steps, "TrainInputFigure")
         with tf.variable_scope("Model", reuse=None, initializer=initializer):
             train_model_figure = ModelFigure(input_figure=train_input_figure, is_training=True)
         tf.summary.scalar("Training Loss", train_model_figure.cost)
         tf.summary.scalar("Learning Rate", train_model_figure.lr)
     with tf.name_scope("Valid"):
+        print("generate valid model")
         valid_input_figure = InputFigure(valid_data, valid_batch_size, valid_num_steps, "ValidInputFigure")
         with tf.variable_scope("Model", reuse=True, initializer=initializer):
             valid_model_figure = ModelFigure(input_figure=valid_input_figure, is_training=False)
         tf.summary.scalar("Validation Loss", valid_model_figure.cost)
     with tf.name_scope("Test"):
+        print("generate test model")
         test_input_figure = InputFigure(test_data, test_batch_size, test_num_steps, "TestInputFigure")
         with tf.variable_scope("Model", reuse=True, initializer=initializer):
             test_model_figure = ModelFigure(input_figure=test_input_figure, is_training=False)
@@ -218,6 +222,7 @@ with tf.Graph().as_default():
     with sv.managed_session() as session:
     	# test_perplexity = run_epoch(session, test_input_figure, test_model_figure)
      #    print("Test Perplexity: %.3f" % test_perplexity)
+        print("session start")
         for i in range(num_epoch):
             session.run(train_model_figure.assign_new_lr, feed_dict={train_model_figure.new_lr: learning_rate * (learning_rate_decay ** max(i + 1 - learning_rate_decay_param, 0.0))})
             print("Epoch: %d Learning rate: %.3f" % (i + 1, session.run(train_model_figure.lr)))
