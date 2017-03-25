@@ -35,10 +35,10 @@ def _file_to_word_ids(filename, word_to_id):
 def _list_to_word_ids(data, word_to_id):
     return [word_to_id[word] if word in word_to_id else num_vocabulary-1 for word in data ] 
 
-def ptb_raw_data(data_path=None):
+def ptb_raw_data(data_path=None  ):
     train_path = os.path.join(data_path, "train.txt")
     valid_path = os.path.join(data_path, "valid.txt")
-    test_path = os.path.join(data_path, "test.txt")
+    test_path =  os.path.join(data_path, "test.txt")
     word_to_id = _build_vocab(train_path)
     train_data = _file_to_word_ids(train_path, word_to_id)
     valid_data = _file_to_word_ids(valid_path, word_to_id)

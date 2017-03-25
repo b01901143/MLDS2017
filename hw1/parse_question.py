@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 
-def get_questions(test_num_steps):
+def get_questions(test_num_steps , test_path):
 	questions = []
-	df = pd.read_csv("./data/test/testing_data.csv")
+	#df = pd.read_csv("./data/test/testing_data.csv")
+	df=pd.read_csv(test_path)
 	for item in df['question']:
 		words = map(str,item.split())
 		i = 0
@@ -29,8 +30,9 @@ def get_questions(test_num_steps):
 				break
 	return questions
 
-def get_options():
-	df = pd.read_csv("./data/test/testing_data.csv")
+def get_options(test_path):
+	#df = pd.read_csv("./data/test/testing_data.csv")
+	df=pd.read_csv(test_path)
 	options = []
 	dat = map(list, df.values)
 	for item in dat:
