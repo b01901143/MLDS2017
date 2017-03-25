@@ -51,9 +51,12 @@ test_path = "./data/test/testing_data.csv" if sys.argv[2]=='0'  else sys.argv [2
 ans_path  = sys.argv [3]
 train_flag   = True if sys.argv[4] == 'train' else None
 
-print (test_path)
-print (ans_path)
-print (train_flag)
+print ('test data path: %s' %test_path)
+#print (ans_path)
+if train_flag:
+	print ("regular training start")
+else :
+	print ("testing only")
 #data
 if sys.argv[1] == "--reparse":
 	print "re-generating training data ..."
@@ -66,7 +69,7 @@ train_data, valid_data, test_data, word_to_id, _ = raw_data
 #testing data
 
 
-test_datasets, test_optionsets = get_questions(test_num_steps , test_path), get_options()
+test_datasets, test_optionsets = get_questions(test_num_steps , test_path), get_options(test_path)
 testing_data_batches, testing_num_batch = generate_testing_batches(test_datasets, test_optionsets, test_num_steps)
 
 
@@ -153,15 +156,23 @@ def run_epoch(epoch, session, input_figure, model_figure, is_training=False):
 
     if input_figure.name == "TestInputFigure":
 
-        f_out = open("_ans_epoch_" + str(epoch) + "_" + str(np.exp(total_cost_per_epoch / total_num_steps_per_epoch)) + ".csv", 'w')
-        f_hand_in = open(ans_path , 'w')
+		f_out = open("_ans_epoch_" + str(epoch) + "_" + str(np.exp(total_cost_per_epoch / total_num_steps_per_epoch)) + ".csv", 'w')
 		f_out.write("id,answer\n")
+		f_hand_in = open(ans_path , 'w')
 		f_hand_in.write("id,answer\n")
-        for idx in range(len(answers)):
-        	f_out.write(str(idx+1)+","+answers[idx]+"\n")
+		for idx in range(len(answers)):
+			f_out.write(str(idx+1)+","+answers[idx]+"\n")
 			f_hand_in.write(str(idx+1)+","+answers[idx]+"\n")
-        f_out.close()
-		f_hand_in.close()
+		f_out.close()
+		
+		if ans_path and ans_path!='0':
+			f_hand_in = open(ans_path , 'w')
+			f_hand_in.write("id,answer\n")
+			for idx in range(len(answers)):
+				f_out.write(str(idx+1)+","+answers[idx]+"\n")
+				f_hand_in.write(str(idx+1)+","+answers[idx]+"\n")
+			f_hand_in.close()
+		
     return np.exp(total_cost_per_epoch / total_num_steps_per_epoch)
 
 class InputFigure(object):
