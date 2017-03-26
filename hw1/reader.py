@@ -82,7 +82,7 @@ def ptb_producer_test(raw_data, batch_size, num_steps, name=None):
         y = tf.strided_slice(data, [0, i * (num_steps+1)], [batch_size, (i + 1) * (num_steps+1)])[:,1:]
         y.set_shape([batch_size, num_steps])
         return x, y, i
-
+#
 # test = _build_vocab_no_id(os.path.join("./data/sets/cut/","train.txt")) 
 # print(test[0])
 # print(test[1])
