@@ -44,42 +44,42 @@ embd    = pickle.load(id2embd)
 vocab_size=71292
 embd_size =200
 class embd_table:
-	def __init__(self):
-		self._word2id = word_dic
-		
-		self._word2id['<end>']=71291
-		self.embed=np.append(embd,[np.full((embd_size),0.0,dtype=np.float32)],axis=0)
-		'''
-		print(type(word_dic))
-		print(type(self._word2id))
-		print (embd.shape)
-		print (self.embed.shape)
-		'''
-		#print(self._embd.shape)
-		#tf.global_variables_initializer().run()
-	def lookupId(self, word):
-		_idx=self._word2id.get(word)
-		
-		return 0 if _idx==None else _idx
-	def lookupEmbd(self,word_2_id):
-		# return a list of embeddings
-		_embedding = np.zeros(shape=[num_vocabulary,embd_size],dtype=np.float32)
-		
-		for key , value in word_2_id.iteritems():
-			
-			_embedding[value]=self.embed[self.lookupId(key)]
-			'''
-			print(self.lookupId(key))
-			print (key)
-			print (value)
-			print(_embedding[value])
-			'''
-		#print(_embedding[word_2_id['no']] )
-		#print(self.embed[self.lookupId('no')])
-		embd = tf.constant(_embedding,shape=[num_vocabulary,embd_size], dtype=tf.float32)
-	
-			
-		return embd
+    def __init__(self):
+        self._word2id = word_dic
+        
+        self._word2id['<end>']=71291
+        self.embed=np.append(embd,[np.full((embd_size),0.0,dtype=np.float32)],axis=0)
+        '''
+        print(type(word_dic))
+        print(type(self._word2id))
+        print (embd.shape)
+        print (self.embed.shape)
+        '''
+        #print(self._embd.shape)
+        #tf.global_variables_initializer().run()
+    def lookupId(self, word):
+        _idx=self._word2id.get(word)
+        
+        return 0 if _idx==None else _idx
+    def lookupEmbd(self,word_2_id):
+        # return a list of embeddings
+        _embedding = np.zeros(shape=[num_vocabulary,embd_size],dtype=np.float32)
+        
+        for key , value in word_2_id.iteritems():
+            
+            _embedding[value]=self.embed[self.lookupId(key)]
+            '''
+            print(self.lookupId(key))
+            print (key)
+            print (value)
+            print(_embedding[value])
+            '''
+        #print(_embedding[word_2_id['no']] )
+        #print(self.embed[self.lookupId('no')])
+        embd = tf.constant(_embedding,shape=[num_vocabulary,embd_size], dtype=tf.float32)
+    
+            
+        return embd
 
 '''
 table=embd_table()
@@ -89,8 +89,8 @@ embed=table.lookupEmbd({'pig':0,'<end>':1})
 '''
 '''
 with tf.Session() as sess:
-	tf.global_variables_initializer().run()
-	_=embed.eval()
-	print(_[1])
-	print(_.shape)
+    tf.global_variables_initializer().run()
+    _=embed.eval()
+    print(_[1])
+    print(_.shape)
 '''
