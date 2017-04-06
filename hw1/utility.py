@@ -77,3 +77,48 @@ def generate_testing_batches(test_data, test_options):
     test_batch = test_array.reshape(len(test_options), 5, -1)
     return test_batch, len(test_options)
 
+def get_questions(data_path):
+    questions = []
+    df = pd.read_csv(data_path)
+    for item in df['question']:
+        words = list(map(str,item.split()))
+        i = 0
+        while i < len(words):
+            words[i] = words[i].lower()
+            j = 0
+            while j < len(words[i]):
+                if not words[i][j].isalpha() and words[i] != '_____':
+                    words[i] = words[i].replace(words[i][j], "")
+                else:
+                    j += 1
+            if words[i] == "":
+                del words[i]
+            else:
+                i += 1
+        questions.append( words[:] + list(map(str,"<end> <end>".split())))
+    for idx in range(0,len(questions)):
+        for j in range(0,len(questions[idx])):
+            if questions[idx][j] == '_____':
+                questions[idx][j] = ' '
+                questions[idx] = questions[idx][j-2 : j+4]
+                break
+    return questions
+
+def get_options(data_path):
+    df = pd.read_csv(data_path)
+    options = []
+    dat = list(map(list, df.values))
+    for item in dat:
+        options.append (item[2:])
+
+        for i,word in enumerate(options[-1]):
+
+            word = word.lower()
+            j = 0
+            while j < len(word):
+                if not word[j].isalpha():
+                    word = word.replace(word[j], "")
+                else:
+                    j += 1
+            options[-1][i] = word
+    return options
