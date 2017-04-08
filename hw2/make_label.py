@@ -25,5 +25,5 @@ if not os.path.exists(label_dir):
 	os.makedirs(label_dir)
 
 #output
-with open(label_dir + "label", "w") as label_file:
-	json.dump(output_label_sorted, label_file)
+with open(label_dir + "final_label.json", "w") as label_file:
+	json.dump(output_label_sorted, label_file, sort_keys=True, indent=4)
