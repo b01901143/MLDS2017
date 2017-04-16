@@ -1,99 +1,75 @@
+#-*- coding: utf-8 -*-
+import pandas as pd
 import numpy as np
 import tensorflow as tf
-from os import listdir
-from os.path import isfile, join
+import os
 
-def read_data(mypath, num_steps, small = True):
-    num = 0
-    files = [f for f in listdir(mypath) if isfile(join(mypath, f))]
-    train_data = []
-    labels = []
-    for f in files[:]:
-        f_in = open( mypath + f, 'r',errors = 'ignore')
-        lines = f_in.readlines()
-        started = False
-        head_count = 999
-        sentence = str()
-        for i,line in enumerate(lines):
-            if started and head_count>0:
-                head_count -= 1
-            if head_count == 0:
-                if i > stop_line:
-                    break
-                if len(line) < 3:
-                    continue
-                if line[-3] not in ['.', '!', '?',"\""]:
-                    if i >= len(lines):
-                        continue
-                    if len(lines[i+1]) < 3:
-                        continue
-                sentence += line[:-2] + ' '
-            if line[0:21] == '*END*THE SMALL PRINT!':
-                started = True
-                length_eff = len(lines) - i
-                head_count = int( float(length_eff) / 5 * 1)
-                stop_line = len(lines) - int( float(length_eff) / 5 * 1)
-                if small:
-                    head_count = int( float(length_eff) / 1555 * 777)
-                    stop_line = len(lines) - int( float(length_eff) / 1555 * 777)
-        count = 0
-        words = list(map(str,sentence.split()))
-        first_sentence = True
-        pivot_pre = 0
-        i = 0
-        while i < len(words):
-            words[i] = words[i].lower()
-            j = 0
-            while j < len(words[i]):
-                if not words[i][j].isalpha() and words[i][j] not in ['.', '!', '?']:
-                    words[i] = words[i].replace(words[i][j], "")
-                else:
-                    j += 1
-            if words[i] == "":
-                del words[i]
-            else:           
-                if words[i][-1] in ['.', '!', '?']:
-                    if first_sentence:
-                        first_sentence = False
-                        pivot_pre = i+1
-                    else:
-                        words[i] = words[i].replace(words[i][-1], "")
-                        if words[i] == "":
-                            del words[i]
-                            continue
-                        if not words[pivot_pre].isalpha():
-                            continue
-                        if not i - pivot_pre > 6:
-                            pivot_pre = i+1 # !!!!!!!!!!!!!
-                            continue
-                        setence_cur = list(words[pivot_pre : i+1])
+import sys
+import time
+import cv2
 
-                        temp = []
-                        for idx in range(num_steps+1):
-                            if idx < len(setence_cur):
-                                temp.append(setence_cur[idx])
-                            else:
-                                temp.append('<end>')
-
-                        train_data.append(temp)
-
-                        pivot_pre = i+1
-                i += 1
-                if i >= len(words):
-                    break
-        # print f, count
-        # print len(train_data)
-
-
-
-    f_out_t = open("./data/raw/cut/big.txt", 'w') 
-    for st in train_data:
-        for wd in st:
-            f_out_t.write(wd + ' ')
-
-        f_out_t.write('\n')
-
-    # print sentences
-    print ("Data parsed to ./data/raw/cut/big.txt, size = " + str(len(train_data)) + " setences")
-    # raw_input()
+def get_video_train_data(video_data_path, video_feat_path):
+    video_data = pd.read_csv(video_data_path, sep=',')
+    video_data['video_path'] = video_data.apply(lambda row: row['VideoID'] + '.npy', axis=1)
+    video_data['video_path'] = video_data['video_path'].map(lambda x: os.path.join(video_feat_path, x))
+    # video_data = video_data[video_data['video_path'].map(lambda x: os.path.exists( x ))]
+    video_data = video_data[video_data['Description'].map(lambda x: isinstance(x, str))]
+    
+    unique_filenames = sorted(video_data['video_path'].unique())
+    train_data = video_data[video_data['video_path'].map(lambda x: x in unique_filenames)]
     return train_data
+
+
+def get_video_test_data(video_data_path, video_feat_path):
+    video_data = pd.read_csv(video_data_path, sep=',')
+    #video_data = video_data[video_data['Language'] == 'English']
+    video_data['video_path'] = video_data.apply(lambda row: row['VideoID'] + '.npy', axis=1)
+    video_data['video_path'] = video_data['video_path'].map(lambda x: os.path.join(video_feat_path, x))
+    #video_data = video_data[video_data['video_path'].map(lambda x: os.path.exists( x ))]
+    video_data = video_data[video_data['Description'].map(lambda x: isinstance(x, str))]
+
+    unique_filenames = sorted(video_data['video_path'].unique())
+    test_data = video_data[video_data['video_path'].map(lambda x: x in unique_filenames)]
+    return test_data
+
+def preProBuildWordVocab(sentence_iterator, word_count_threshold=5):
+    # borrowed this function from NeuralTalk
+    print 'preprocessing word counts and creating vocab based on word count threshold %d' % (word_count_threshold)
+    word_counts = {}
+    nsents = 0
+    for sent in sentence_iterator:
+        nsents += 1
+        #for w in sent.lower().split(' '):
+        for w in sent.lower().split(' '):
+            if(w != ""):
+                word_counts[w] = word_counts.get(w, 0) + 1
+    vocab = [w for w in word_counts if word_counts[w] >= word_count_threshold]
+    print 'filtered words from %d to %d' % (len(word_counts), len(vocab))
+
+    ixtoword = {}
+    ixtoword[0] = '<pad>'
+    ixtoword[1] = '<bos>'
+    ixtoword[2] = '<eos>'
+    ixtoword[3] = '<unk>'
+
+    wordtoix = {}
+    wordtoix['<pad>'] = 0
+    wordtoix['<bos>'] = 1
+    wordtoix['<eos>'] = 2
+    wordtoix['<unk>'] = 3
+
+    for idx, w in enumerate(vocab):
+        wordtoix[w] = idx+4
+        ixtoword[idx+4] = w
+
+    word_counts['<pad>'] = nsents
+    word_counts['<bos>'] = nsents
+    word_counts['<eos>'] = nsents
+    word_counts['<unk>'] = nsents
+
+    bias_init_vector = np.array([1.0 * word_counts[ ixtoword[i] ] for i in ixtoword])
+    bias_init_vector /= np.sum(bias_init_vector) # normalize to frequencies
+    bias_init_vector = np.log(bias_init_vector)
+    bias_init_vector -= np.max(bias_init_vector) # shift to nice numeric range
+
+    return wordtoix, ixtoword, bias_init_vector
