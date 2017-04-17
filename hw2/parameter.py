@@ -1,4 +1,3 @@
-#paremeters
 video_size = 4096
 video_step = 80
 caption_size = 1932
@@ -8,7 +7,6 @@ num_epoch = 500
 batch_size = 10
 learning_rate = 0.001
 
-#path
 model_path = "_".join((
         "num_vocabulary", str(caption_size),
         "hidden_size", str(hidden_size),
