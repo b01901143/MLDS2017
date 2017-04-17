@@ -1,5 +1,6 @@
-import tensorflow as tf
+import pandas as pd
 import numpy as np
+import tensorflow as tf
 from utility import *
 from parameter import *
 
@@ -150,39 +151,35 @@ class Video_Caption_Generator():
         return video, video_mask, generated_words, probs, embeds
 
 def train():
-    train_data, test_data = getInfo("training"), getInfo("testing")
-    word_id, id_word = buildVocab(train_data["label_sentence"].values)
-    print len(word_id)
+    train_data, all_data = getInfo(train_info_path), pd.concat([getInfo(train_info_path), getInfo(test_info_path)])
+    word_id, id_word = buildVocab(all_data["label_sentence"].values)
+    for epoch in range(num_epoch):
+        index_list = np.arange(len(train_data))
+        np.random.shuffle(index_list)
+        current_train_data = train_data.ix[index_list]
+        for start, end in zip(range(0, len(current_train_data), batch_size), range(batch_size, len(current_train_data), batch_size)):
+            current_batch = current_train_data[start:end]
+            print current_batch
+            #current_video_batch = map(lambda x: np.load(x), current_batch["feat_path"].values)
+            #current_caption_batch = current_batch["label_sentence"].values
+            #print current_video_batch
+        
+    
     '''
     train_captions = train_data["Description"].values
     
     captions_list = list(train_captions) 
     captions = np.asarray(captions_list, dtype=np.object)
 
-    captions = map(lambda x: x.replace('.', ''), captions)
-    captions = map(lambda x: x.replace(',', ''), captions)
-    captions = map(lambda x: x.replace('"', ''), captions)
-    captions = map(lambda x: x.replace('\n', ''), captions)
-    captions = map(lambda x: x.replace('?', ''), captions)
-    captions = map(lambda x: x.replace('!', ''), captions)
-    captions = map(lambda x: x.replace('\\', ''), captions)
-    captions = map(lambda x: x.replace('/', ''), captions)
-
-    wordtoix, ixtoword, bias_init_vector = preProBuildWordVocab(captions, word_count_threshold=0)
-
-    np.save("./data/training/wordtoix", wordtoix)
-    np.save('./data/training/ixtoword', ixtoword)
-    np.save("./data/training/bias_init_vector", bias_init_vector)
-
     model = Video_Caption_Generator(
             video_size=video_size,
-            n_words=len(wordtoix),
+            n_words=caption_size,
             hidden_size=hidden_size,
             batch_size=batch_size,
             n_lstm_steps=video_step,
             video_step=video_step,
             caption_step=caption_step,
-            bias_init_vector=bias_init_vector)
+            )
 
     tf_loss, tf_video, tf_video_mask, tf_caption, tf_caption_mask, tf_probs = model.build_model()
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.333)
@@ -200,7 +197,7 @@ def train():
     loss_fd = open('loss.txt', 'w')
     loss_to_draw = []
 
-    for epoch in range(0, n_epochs):
+    for epoch in range(0, num_epoch):
         loss_to_draw_epoch = []
 
         index = list(train_data.index)
@@ -303,67 +300,5 @@ def train():
             saver.save(sess, os.path.join(model_path, 'model'), global_step=epoch)
 
     loss_fd.close()
-
-def test(model_path='./models/model-100'):
-    test_data = get_data(video_test_feat_path, video_test_data_path)
-    test_videos = test_data['video_path'].unique()
-
-    ixtoword = pd.Series(np.load('./training_data/ixtoword.npy').tolist())
-
-    bias_init_vector = np.load('./training_data/bias_init_vector.npy')
-
-    model = Video_Caption_Generator(
-            video_size=video_size,
-            n_words=len(ixtoword),
-            hidden_size=hidden_size,
-            batch_size=batch_size,
-            n_lstm_steps=video_step,
-            video_step=video_step,
-            caption_step=caption_step,
-            bias_init_vector=bias_init_vector)
-
-    video_tf, video_mask_tf, caption_tf, probs_tf, last_embed_tf = model.build_generator()
-
-    sess = tf.InteractiveSession()
-
-    saver = tf.train.Saver()
-    saver.restore(sess, model_path)
-
-    test_output_txt_fd = open('S2VT_results.txt', 'w')
-    for idx, video_feat_path in enumerate(test_videos):
-        print idx, video_feat_path
-
-        video_feat = np.load(video_feat_path)[None,...]
-        #video_feat = np.load(video_feat_path)
-        #video_mask = np.ones((video_feat.shape[0], video_feat.shape[1]))
-        if video_feat.shape[1] == video_step:
-            video_mask = np.ones((video_feat.shape[0], video_feat.shape[1]))
-        else:
-            continue
-            #shape_templete = np.zeros(shape=(1, video_step, 4096), dtype=float )
-            #shape_templete[:video_feat.shape[0], :video_feat.shape[1], :video_feat.shape[2]] = video_feat
-            #video_feat = shape_templete
-            #video_mask = np.ones((video_feat.shape[0], video_step))
-
-        generated_word_index = sess.run(caption_tf, feed_dict={video_tf:video_feat, video_mask_tf:video_mask})
-        generated_words = ixtoword[generated_word_index]
-
-        punctuation = np.argmax(np.array(generated_words) == '<eos>') + 1
-        generated_words = generated_words[:punctuation]
-
-        generated_sentence = ' '.join(generated_words)
-        generated_sentence = generated_sentence.replace('<bos> ', '')
-        generated_sentence = generated_sentence.replace(' <eos>', '')
-        print generated_sentence,'\n'
-        test_output_txt_fd.write(video_feat_path + '\n')
-        test_output_txt_fd.write(generated_sentence + '\n\n')
 '''
-# def train1():
-#     # get_data('training_data/feat/')
-#     # exit()
-#     train_data = get_data(video_train_data_path, video_train_feat_path)
-#     train_captions = train_data["Description"].values
-#     test_data = get_data(video_test_data_path, video_test_feat_path)
-#     test_captions = test_data["Description"].values
-
 train()

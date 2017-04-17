@@ -5,8 +5,8 @@ import collections
 import pandas as pd
 import numpy as np
 
-def getInfo(data_type):
-	return pd.read_csv("./data/" + data_type + "/info.csv", sep=",")
+def getInfo(info_path):
+	return pd.read_csv(info_path, sep=",")
 
 def buildVocab(label_sentences):
 	temp_collection_list = []
