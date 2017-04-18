@@ -89,7 +89,7 @@ class VideoCaptionGenerator():
                 with tf.variable_scope("LSTM1"):
                     output_1, state_1 = self.lstm_1(video_embed[:, i, :], state_1)
                 with tf.variable_scope("LSTM2"):
-                    output_2, state_2 = self.lstm_2(tf.concat([padding, output1], 1), state_2)
+                    output_2, state_2 = self.lstm_2(tf.concat([padding, output_1], 1), state_2)
             #decoding stage
             for i in range(0, self.caption_step):
                 tf.get_variable_scope().reuse_variables()
