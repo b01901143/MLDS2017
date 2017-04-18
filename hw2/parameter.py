@@ -1,7 +1,7 @@
 video_size = 4096
 video_step = 80
 caption_size = 1932
-caption_step = 20
+caption_step = 12
 hidden_size = 256
 num_epoch = 500
 batch_size = 10
