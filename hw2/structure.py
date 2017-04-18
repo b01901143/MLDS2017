@@ -53,7 +53,7 @@ class VideoCaptionGenerator():
                     output_1, state_1 = self.lstm_1(padding, state_1)
                 with tf.variable_scope("LSTM2"):
                     output_2, state_2 = self.lstm_2(tf.concat([caption_embed, output_1], 1), state_2)
-                #cross entropy
+                #loss
                 logits = tf.nn.xw_plus_b(output2, self.caption_decode_W, self.caption_decode_b)
                 labels = tf.sparse_to_dense(
                     tf.concat([tf.expand_dims(tf.range(self.batch_size), 1), tf.expand_dims(tf_caption_array[:, i+1], 1)], 1),
@@ -75,12 +75,8 @@ class VideoCaptionGenerator():
         video_embed = tf.reshape(video_embed, [1, self.video_step, self.hidden_size])
         state_1 = tf.zeros([1, self.lstm_1.state_size])
         state_2 = tf.zeros([1, self.lstm_2.state_size])
-        padding = tf.zeros([1, self.hidden_size])
-
-        generated_words = []
-        probs = []
-        embeds = []
-
+        padding = tf.zeros([1, self.hidden_size])=
+        tf_caption_array_id = []
         with tf.variable_scope("RNN"):
             #encoding stage
             for i in range(self.video_step):
@@ -91,28 +87,20 @@ class VideoCaptionGenerator():
                 with tf.variable_scope("LSTM2"):
                     output_2, state_2 = self.lstm_2(tf.concat([padding, output_1], 1), state_2)
             #decoding stage
-            for i in range(0, self.caption_step):
+            for i in range(self.caption_step-1):
+                with tf.device("./cpu:0"):
+                    if i == 0:
+                        caption_embed = tf.nn.embedding_lookup(self.caption_encode_W, tf.ones([1], dtype=tf.int64))
+                    else:
+                        caption_embed = tf.nn.embedding_lookup(self.caption_encode_W, max_prob_index)
+                        caption_embed = tf.expand_dims(caption_embed, 0)                        
                 tf.get_variable_scope().reuse_variables()
-
-                if i == 0:
-                    with tf.device('/cpu:0'):
-                        current_embed = tf.nn.embedding_lookup(self.Wemb, tf.ones([1], dtype=tf.int64))
-
                 with tf.variable_scope("LSTM1"):
-                    output1, state1 = self.lstm1(padding, state1)
-
+                    output_1, state_1 = self.lstm_1(padding, state_1)
                 with tf.variable_scope("LSTM2"):
-                    output2, state2 = self.lstm2(tf.concat([current_embed, output1], 1), state2)
-
-                logit_words = tf.nn.xw_plus_b( output2, self.embed_word_W, self.embed_word_b)
-                max_prob_index = tf.argmax(logit_words, 1)[0]
-                generated_words.append(max_prob_index)
-                probs.append(logit_words)
-
-                with tf.device("/cpu:0"):
-                    current_embed = tf.nn.embedding_lookup(self.Wemb, max_prob_index)
-                    current_embed = tf.expand_dims(current_embed, 0)
-
-                embeds.append(current_embed)
-
-        return video, video_mask, generated_words, probs, embeds
+                    output_2, state_2 = self.lstm_2(tf.concat([caption_embed, output_1], 1), state_2)
+                #caption_array_id
+                logits = tf.nn.xw_plus_b(output_2, self.caption_decode_W, self.caption_decode_b)
+                max_prob_index = tf.argmax(logits, 1)[0]
+                tf_caption_array_id.append(max_prob_index)
+        return tf_video_array, tf_video_array_mask, tf_caption_array_id
