@@ -9,36 +9,30 @@ from parameter import *
 
 class VideoCaptionGenerator():
     def __init__(self, video_size, video_step, caption_size, caption_step, hidden_size, batch_size):
+        #parameters
         self.video_size = video_size
         self.video_step = video_step
         self.caption_size = caption_size
         self.caption_step = caption_step
         self.hidden_size = hidden_size
         self.batch_size = batch_size
-
-
+        #encode layers
         with tf.device("/cpu:0"):
-            self.Wemb = tf.Variable(tf.random_uniform([caption_size, hidden_size], -0.1, 0.1), name='Wemb')
-        #self.bemb = tf.Variable(tf.zeros([hidden_size]), name='bemb')
-
+            self.caption_encode_W = tf.Variable(tf.random_uniform([caption_size, hidden_size], -0.1, 0.1), name="caption_encode_W")
+        self.video_encode_W = tf.Variable(tf.random_uniform([video_size, hidden_size], -0.1, 0.1), name="video_encode_W")
+        self.video_encode_b = tf.Variable(tf.zeros([hidden_size]), name="video_encode_b")        
+        #lstm layers
         self.lstm1 = tf.contrib.rnn.BasicLSTMCell(hidden_size, state_is_tuple=False)
         self.lstm2 = tf.contrib.rnn.BasicLSTMCell(hidden_size, state_is_tuple=False)
-
-        self.encode_image_W = tf.Variable( tf.random_uniform([video_size, hidden_size], -0.1, 0.1), name='encode_image_W')
-        self.encode_image_b = tf.Variable( tf.zeros([hidden_size]), name='encode_image_b')
-
-        self.embed_word_W = tf.Variable(tf.random_uniform([hidden_size, caption_size], -0.1,0.1), name='embed_word_W')
-        if bias_init_vector is not None:
-            self.embed_word_b = tf.Variable(bias_init_vector.astype(np.float32), name='embed_word_b')
-        else:
-            self.embed_word_b = tf.Variable(tf.zeros([caption_size]), name='embed_word_b')
-
+        #decode layers
+        self.caption_decode_W = tf.Variable(tf.random_uniform([hidden_size, caption_size], -0.1, 0.1), name="caption_decode_W")
+        self.caption_decode_b = tf.Variable(tf.zeros([caption_size]), name="caption_decode_b")
     def buildModel(self):
-        video = tf.placeholder(tf.float32, [self.batch_size, self.video_step, self.video_size])
-        video_mask = tf.placeholder(tf.float32, [self.batch_size, self.video_step])
-
-        caption = tf.placeholder(tf.int32, [self.batch_size, self.caption_step])
-        caption_mask = tf.placeholder(tf.float32, [self.batch_size, self.caption_step])
+        #placeholder
+        tf_video_array = tf.placeholder(tf.float32, [self.batch_size, self.video_step, self.video_size])
+        tf_video_array_mask = tf.placeholder(tf.float32, [self.batch_size, self.video_step])
+        tf_caption_array = tf.placeholder(tf.int32, [self.batch_size, self.caption_step])
+        tf_caption_array_mask = tf.placeholder(tf.float32, [self.batch_size, self.caption_step])
 
         video_flat = tf.reshape(video, [-1, self.video_size])
         image_emb = tf.nn.xw_plus_b( video_flat, self.encode_image_W, self.encode_image_b )
@@ -95,7 +89,7 @@ class VideoCaptionGenerator():
         return loss, video, video_mask, caption, caption_mask, probs
 
 
-    def build_generator(self):
+    def buildGenerator(self):
         
         # tf.get_variable_scope().reuse_variables()
 
@@ -166,7 +160,7 @@ def train():
             batch_size=batch_size
         )
     #build model
-    tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_loss, tf_optimizer = model.build_model()
+    tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_loss, tf_optimizer = model.buildModel()
     #build session, saver
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=per_process_gpu_memory_fraction)
     session = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))
