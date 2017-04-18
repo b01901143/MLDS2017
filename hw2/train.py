@@ -11,7 +11,7 @@ from structure import *
 def train():
     #prepare data
     train_data, all_data = getInfo(train_info_path), pd.concat([getInfo(train_info_path), getInfo(test_info_path)])
-    word_id, id_word = buildVocab(all_data["label_sentence"].values)
+    word_id, _ = buildVocab(all_data["label_sentence"].values)
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -78,9 +78,9 @@ def train():
         #save
         if np.mod(epoch, save_per_epoch) == 0:
             print "Epoch ", epoch, " is done. Saving the model..."
-            if not os.path.exists(model_path):
-                os.makedirs(model_path)
-            saver.save(session, model_path, global_step=epoch)            
+            if not os.path.exists(model_dir):
+                os.makedirs(model_dir)
+            saver.save(session, model_dir, global_step=epoch)            
 
 if __name__ == "__main__":
     train()
