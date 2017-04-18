@@ -60,21 +60,21 @@ def train():
                 row[:nonzero_length[index]] = 1
             #loss
             fetch_dict = {
-                "loss":tf_loss
+                "loss":tf_loss,
                 "optimizer":tf_optimizer
             }
             feed_dict = {
-                tf_video_array:video_array
-                tf_video_array_mask:video_array_mask
-                tf_caption_array:caption_array
+                tf_video_array:video_array,
+                tf_video_array_mask:video_array_mask,
+                tf_caption_array:caption_array,
                 tf_caption_array_mask:caption_array_mask
             }
-            session.run(fetch_dict, feed_dict)
+            track_dict = session.run(fetch_dict, feed_dict)
             #print
-            sys.stdout.write("\rBatchID: {0}, Loss: {1}".format(start / batch_size, loss_eval))
+            sys.stdout.write("\rBatchID: {0}, Loss: {1}".format(start / batch_size, track_dict["loss"]))
             sys.stdout.flush()
         end_time = time.time()
-        sys.stdout.write("Epoch: {0}, Loss: {1}, Time: {2}".format(epoch, loss_eval, start_time - end_time))
+        sys.stdout.write("Epoch: {0}, Loss: {1}, Time: {2}".format(epoch, track_dict["loss"], start_time - end_time))
         #save
         if np.mod(epoch, save_per_epoch) == 0:
             print "Epoch ", epoch, " is done. Saving the model..."

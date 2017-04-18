@@ -42,8 +42,8 @@ def test():
             "video_array":tf_video_array
             "video_array_mask":tf_video_array_mask
         }
-        session.run(fetch_dict, feed_dict)
-        caption_array_id = fetch_dict["caption_array_id"]
+        track_dict = session.run(fetch_dict, feed_dict)
+        caption_array_id = track_dict["caption_array_id"]
         caption_array = id_word[caption_array_id]
         print caption_array    
 

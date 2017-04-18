@@ -25,4 +25,4 @@ model_dir = "model/" + "_".join((
         "num_epoch", str(num_epoch),
         "learning_rate", str(learning_rate)
     )) + "/"
-test_model_path = model_dir + "model-" + test_model_version
+test_model_path = model_dir + "model-" + str(test_model_version)
