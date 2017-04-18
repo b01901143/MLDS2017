@@ -11,7 +11,7 @@ learning_rate = 0.001
 
 #for other settings
 per_process_gpu_memory_fraction = 0.8
-max_to_keep=10 #default 5 recent checkpoints
+max_to_keep = 10 #default 5 recent checkpoints
 
 #path
 train_feat_dir = "./data/training/feat/"
