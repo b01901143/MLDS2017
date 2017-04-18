@@ -74,10 +74,10 @@ def train():
             sys.stdout.write("\rBatchID: {0}, Loss: {1}".format(start / batch_size, track_dict["loss"]))
             sys.stdout.flush()
         end_time = time.time()
-        sys.stdout.write("\nEpoch: {0}, Loss: {1}, Time: {2}".format(epoch, track_dict["loss"], end_time - start_time))
+        sys.stdout.write("\nEpoch: {0}, Loss: {1}, Time: {2}\n".format(epoch, track_dict["loss"], end_time - start_time))
         #save
         if np.mod(epoch, save_per_epoch) == 0:
-            print "\nEpoch ", epoch, " is done. Saving the model..."
+            print "Epoch ", epoch, " is done. Saving the model..."
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
             saver.save(session, model_dir, global_step=epoch)            
