@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 import tensorflow as tf
 from utility import *
@@ -7,8 +6,11 @@ from structure import *
 
 def test():
     #prepare data
-    test_data, all_data = getInfo(test_info_path), pd.concat([getInfo(train_info_path), getInfo(test_info_path)])
-    _, id_word, init_bias_vector = buildVocab(all_data["label_sentence"].values)
+    train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
+    train_feats, train_labels = [ getFeat(train_feat_dir + path) for path in train_data["feat_path"].values ], [ getLabel(train_label_dir + path) for path in train_data["label_path"].values ]
+    test_labels = [ getLabel(test_label_dir + path) for path in test_data["label_path"].values ]
+    all_merge_labels = [ label for labels in train_labels for label in labels ] + [ label for labels in test_labels for label in labels ]
+    word_id, _, init_bias_vector = buildVocab(all_merge_labels)
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -28,6 +30,7 @@ def test():
     #restore variables
     saver.restore(session, test_model_path)
     #run testing
+    
     for index, feat_path in enumerate(test_data["feat_path"]):
         print "VideoID: " + str(index) + " Path: " + feat_path
         video_array = np.load(test_feat_dir + feat_path)[None,...] 

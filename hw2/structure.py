@@ -21,7 +21,7 @@ class VideoCaptionGenerator():
         self.lstm_2 = tf.contrib.rnn.BasicLSTMCell(hidden_size, state_is_tuple=False)
         #decode layers
         self.caption_decode_W = tf.Variable(tf.random_uniform([hidden_size, caption_size], -0.1, 0.1), name="caption_decode_W")
-        self.caption_decode_b = tf.Variable(init_bias_vector.astype(np.float32), name="caption_decode_b")
+        self.caption_decode_b = tf.Variable(init_bias_vector.astype("float32"), name="caption_decode_b")
     def buildModel(self):
         #placeholders
         tf_video_array = tf.placeholder(tf.float32, [self.batch_size, self.video_step, self.video_size])

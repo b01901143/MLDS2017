@@ -6,8 +6,9 @@ caption_step = 42
 hidden_size = 256
 batch_size = 10
 num_iter = 10
-num_epoch = 37 #fix
-save_per_iter = 1
+num_epoch_per_iter = 37 #fix
+num_batch_per_epoch = 144
+save_num_epoch = 10
 learning_rate = 0.001
 test_model_version = 0
 

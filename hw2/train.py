@@ -1,7 +1,6 @@
 import os
 import sys
 import time
-import pandas as pd
 import numpy as np
 import tensorflow as tf
 from utility import *
@@ -37,14 +36,14 @@ def train():
     for it in range(num_iter):
         #shuffle index
         index_list_1 = []
-        for _ in range(num_epoch):
+        for _ in range(num_epoch_per_iter):
             index_list_1.extend(np.random.choice(len(train_labels), len(train_labels), replace=False))
         index_list_2 = []
         for labels in train_labels:
             temp_list = []
-            for _ in range(num_epoch // len(labels) + 1):
+            for _ in range(num_epoch_per_iter // len(labels) + 1):
                 temp_list.extend(np.random.choice(len(labels), len(labels), replace=False))
-            temp_list = temp_list[:num_epoch]
+            temp_list = temp_list[:num_epoch_per_iter]
             index_list_2.append(temp_list)
         #batch
         start_time = time.time()
@@ -84,13 +83,15 @@ def train():
             #print
             sys.stdout.write("\rBatchID: {0}, Loss: {1}".format(start / batch_size, track_dict["loss"]))
             sys.stdout.flush()
-        end_time = time.time()
-        sys.stdout.write("\nIterID: {0}, Loss: {1}, Time: {2}\n".format(it, track_dict["loss"], end_time - start_time))
-        #save
-        print "Iter ", it, " is done. Saving the model..."
-        if not os.path.exists(model_dir):
-            os.makedirs(model_dir)
-        saver.save(session, model_dir, global_step=it)      
+            if np.mod(start, batch_size * num_batch_per_epoch) == 0:
+                end_time = time.time()
+                sys.stdout.write("\nEpochID: {0}, Loss: {1}, Time: {2}\n".format((start / (batch_size * num_batch_per_epoch), track_dict["loss"], end_time - start_time)))
+                start_time = time.time()                
+            if np.mod(start, batch_size * num_batch_per_epoch * save_num_epoch) == 0:
+                print "Epoch ", start / (batch_size * num_batch_per_epoch), " is done. Saving the model..."
+                if not os.path.exists(model_dir):
+                    os.makedirs(model_dir)
+                saver.save(session, model_dir, global_step=start/(batch_size*num_batch_per_epoch))      
 
 if __name__ == "__main__":
     train()
