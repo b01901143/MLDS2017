@@ -10,11 +10,11 @@ from structure import *
 
 def train():
     #prepare data
-    train_data, all_data = getInfo(train_info_path), pd.concat([getInfo(train_info_path), getInfo(test_info_path)])
-    train_feat, train_label = [ getFeat(train_feat_dir + path) for path in train_data["feat_path"].values ], [ getLabel(train_label_dir + path) for path in train_data["label_path"].values ]
-    print len(train_feat), len(train_label)
-    '''
-    word_id, _, init_bias_vector = buildVocab(all_data["label_sentence"].values)
+    train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
+    train_feats, train_labels = [ getFeat(train_feat_dir + path) for path in train_data["feat_path"].values ], [ getLabel(train_label_dir + path) for path in train_data["label_path"].values ]
+    test_labels = [ getLabel(test_label_dir + path) for path in test_data["label_path"].values ]
+    all_merge_labels = [ label for labels in train_labels for label in labels ] + [ label for labels in test_labels for label in labels ]
+    word_id, _, init_bias_vector = buildVocab(all_merge_labels)
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
