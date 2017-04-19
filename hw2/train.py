@@ -11,6 +11,9 @@ from structure import *
 def train():
     #prepare data
     train_data, all_data = getInfo(train_info_path), pd.concat([getInfo(train_info_path), getInfo(test_info_path)])
+    train_feat, train_label = [ getFeat(train_feat_dir + path) for path in train_data["feat_path"].values ], [ getLabel(train_label_dir + path) for path in train_data["label_path"].values ]
+    print len(train_feat), len(train_label)
+    '''
     word_id, _, init_bias_vector = buildVocab(all_data["label_sentence"].values)
     #initialize model
     model = VideoCaptionGenerator(
@@ -82,6 +85,6 @@ def train():
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
             saver.save(session, model_dir, global_step=epoch)            
-
+'''
 if __name__ == "__main__":
     train()

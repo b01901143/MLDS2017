@@ -1,5 +1,7 @@
 #-*- coding: utf-8 -*-
 import os
+import json
+import codecs
 import operator
 import collections
 import pandas as pd
@@ -7,6 +9,12 @@ import numpy as np
 
 def getInfo(info_path):
 	return pd.read_csv(info_path, sep=",")
+
+def getFeat(feat_path):
+	return np.load(feat_path)
+
+def getLabel(label_path):
+	return json.load(codecs.open(label_path, "r", "utf-8"))
 
 def buildVocab(label_sentences):
 	temp_collection_list = []
