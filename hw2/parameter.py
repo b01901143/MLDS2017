@@ -7,8 +7,8 @@ hidden_size = 256
 batch_size = 10
 num_iter = 10
 num_epoch = 37 #fix
+save_per_iter = 1
 learning_rate = 0.001
-save_per_epoch = 10
 test_model_version = 0
 
 #for other settings
@@ -25,7 +25,7 @@ test_info_path = "./data/testing/info.csv"
 model_dir = "model/" + "_".join((
         "num_vocabulary", str(caption_size),
         "hidden_size", str(hidden_size),
-        "num_epoch", str(num_epoch),
+        "num_iter", str(num_iter),
         "learning_rate", str(learning_rate)
     )) + "/"
 test_model_path = model_dir + "-" + str(test_model_version)

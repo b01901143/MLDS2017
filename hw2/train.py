@@ -34,7 +34,7 @@ def train():
     #initialize variables
     tf.global_variables_initializer().run()
     #run epochs
-    for _ in range(num_iter):
+    for it in range(num_iter):
         #shuffle index
         index_list_1 = []
         for _ in range(num_epoch):
@@ -52,8 +52,8 @@ def train():
             #video, caption batch
             current_index_list_1 = index_list_1[start:end]
             current_video_batch = map(lambda x: train_feats[x], current_index_list_1)
-            current_caption_batch = [ "<bos>" + train_labels[x][index_list_2[x].pop()] + "<eos>" for x in current_index_list_1 ]
-            current_caption_id_batch = [ [ word_id[word] for word in sentence.lower().split(" ") ] for sentence in current_caption_batch
+            current_caption_batch = [ "<bos> " + train_labels[x][index_list_2[x].pop()] + " <eos>" for x in current_index_list_1 ]
+            current_caption_id_batch = [ [ word_id[word] for word in sentence.lower().split(" ") ] for sentence in current_caption_batch ]
             #video_array
             video_array = np.zeros((batch_size, video_step, video_size), dtype="float32")
             for index, video in enumerate(current_video_batch):
@@ -85,13 +85,12 @@ def train():
             sys.stdout.write("\rBatchID: {0}, Loss: {1}".format(start / batch_size, track_dict["loss"]))
             sys.stdout.flush()
         end_time = time.time()
-        sys.stdout.write("\nEpoch: {0}, Loss: {1}, Time: {2}\n".format(epoch, track_dict["loss"], end_time - start_time))
+        sys.stdout.write("\nIterID: {0}, Loss: {1}, Time: {2}\n".format(it, track_dict["loss"], end_time - start_time))
         #save
-        if np.mod(epoch, save_per_epoch) == 0:
-            print "Epoch ", epoch, " is done. Saving the model..."
-            if not os.path.exists(model_dir):
-                os.makedirs(model_dir)
-            saver.save(session, model_dir, global_step=epoch)            
+        print "Iter ", it, " is done. Saving the model..."
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        saver.save(session, model_dir, global_step=it)      
 
 if __name__ == "__main__":
     train()
