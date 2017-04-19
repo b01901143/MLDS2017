@@ -11,7 +11,7 @@ from structure import *
 def train():
     #prepare data
     train_data, all_data = getInfo(train_info_path), pd.concat([getInfo(train_info_path), getInfo(test_info_path)])
-    word_id, _ = buildVocab(all_data["label_sentence"].values)
+    word_id, _, init_bias_vector = buildVocab(all_data["label_sentence"].values)
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -19,14 +19,15 @@ def train():
             caption_size=caption_size,
             caption_step=caption_step,
             hidden_size=hidden_size,
-            batch_size=batch_size
+            batch_size=batch_size,
+            init_bias_vector=init_bias_vector
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_loss, tf_optimizer = model.buildModel()
     #build session, saver
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=per_process_gpu_memory_fraction)
     session = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))
-    saver = tf.train.Saver(max_to_keep=100)
+    saver = tf.train.Saver(max_to_keep=max_to_keep)
     #initialize variables
     tf.global_variables_initializer().run()
     #run epochs

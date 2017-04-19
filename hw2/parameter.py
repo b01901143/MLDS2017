@@ -8,7 +8,7 @@ batch_size = 10
 num_epoch = 500
 learning_rate = 0.001
 save_per_epoch = 10
-test_model_version = 10
+test_model_version = 440
 
 #for other settings
 per_process_gpu_memory_fraction = 0.8
@@ -25,4 +25,4 @@ model_dir = "model/" + "_".join((
         "num_epoch", str(num_epoch),
         "learning_rate", str(learning_rate)
     )) + "/"
-test_model_path = model_dir + "model-" + str(test_model_version)
+test_model_path = model_dir + "-" + str(test_model_version)

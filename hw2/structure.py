@@ -1,8 +1,9 @@
+import numpy as np
 import tensorflow as tf
 from parameter import *
 
 class VideoCaptionGenerator():
-    def __init__(self, video_size, video_step, caption_size, caption_step, hidden_size, batch_size):
+    def __init__(self, video_size, video_step, caption_size, caption_step, hidden_size, batch_size, init_bias_vector):
         #parameters
         self.video_size = video_size
         self.video_step = video_step
@@ -20,7 +21,7 @@ class VideoCaptionGenerator():
         self.lstm_2 = tf.contrib.rnn.BasicLSTMCell(hidden_size, state_is_tuple=False)
         #decode layers
         self.caption_decode_W = tf.Variable(tf.random_uniform([hidden_size, caption_size], -0.1, 0.1), name="caption_decode_W")
-        self.caption_decode_b = tf.Variable(tf.zeros([caption_size]), name="caption_decode_b")
+        self.caption_decode_b = tf.Variable(init_bias_vector.astype(np.float32), name="caption_decode_b")
     def buildModel(self):
         #placeholders
         tf_video_array = tf.placeholder(tf.float32, [self.batch_size, self.video_step, self.video_size])
@@ -88,7 +89,7 @@ class VideoCaptionGenerator():
                     output_2, state_2 = self.lstm_2(tf.concat([padding, output_1], 1), state_2)
             #decoding stage
             for step in range(self.caption_step-1):
-                with tf.device("./cpu:0"):
+                with tf.device("/cpu:0"):
                     if step == 0:
                         caption_embed = tf.nn.embedding_lookup(self.caption_encode_W, tf.ones([1], dtype=tf.int64))
                     else:
