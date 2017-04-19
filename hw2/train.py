@@ -34,19 +34,26 @@ def train():
     #initialize variables
     tf.global_variables_initializer().run()
     #run epochs
-    for epoch in range(num_epoch):
-        #shuffle
-        index_list = np.arange(len(train_data))
-        np.random.shuffle(index_list)
-        current_train_data = train_data.ix[index_list]
+    for _ in range(num_iter):
+        #shuffle index
+        index_list_1 = []
+        for _ in range(num_epoch):
+            index_list_1.extend(np.random.choice(len(train_labels), len(train_labels), replace=False))
+        index_list_2 = []
+        for labels in train_labels:
+            temp_list = []
+            for _ in range(num_epoch // len(labels) + 1):
+                temp_list.extend(np.random.choice(len(labels), len(labels), replace=False))
+            temp_list = temp_list[:num_epoch]
+            index_list_2.append(temp_list)
         #batch
         start_time = time.time()
-        for start, end in zip(range(0, len(current_train_data), batch_size), range(batch_size, len(current_train_data), batch_size)):
+        for start, end in zip(range(0, len(index_list_1), batch_size), range(batch_size, len(index_list_1), batch_size)):
             #video, caption batch
-            current_batch = current_train_data[start:end]
-            current_video_batch = map(lambda x: np.load(train_feat_dir + x), current_batch["feat_path"].values)
-            current_caption_batch = [ "<bos> " + sentence + " <eos>" for sentence in current_batch["label_sentence"].values ]
-            current_caption_id_batch = [ [ word_id[word] for word in sentence.lower().split(" ") ] for sentence in current_caption_batch ]
+            current_index_list_1 = index_list_1[start:end]
+            current_video_batch = map(lambda x: train_feats[x], current_index_list_1)
+            current_caption_batch = [ "<bos>" + train_labels[x][index_list_2[x].pop()] + "<eos>" for x in current_index_list_1 ]
+            current_caption_id_batch = [ [ word_id[word] for word in sentence.lower().split(" ") ] for sentence in current_caption_batch
             #video_array
             video_array = np.zeros((batch_size, video_step, video_size), dtype="float32")
             for index, video in enumerate(current_video_batch):
@@ -85,6 +92,6 @@ def train():
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
             saver.save(session, model_dir, global_step=epoch)            
-'''
+
 if __name__ == "__main__":
     train()

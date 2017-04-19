@@ -1,11 +1,12 @@
 #parameter
 video_size = 4096
 video_step = 80
-caption_size = 6193
-caption_step = 12
+caption_size = 6193 #fix
+caption_step = 42
 hidden_size = 256
 batch_size = 10
-num_epoch = 500
+num_iter = 10
+num_epoch = 37 #fix
 learning_rate = 0.001
 save_per_epoch = 10
 test_model_version = 0
