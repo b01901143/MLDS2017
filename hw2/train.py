@@ -85,13 +85,13 @@ def train():
             sys.stdout.flush()
             if np.mod(start, batch_size * num_batch_per_epoch) == 0:
                 end_time = time.time()
-                sys.stdout.write("\nEpochID: {0}, Loss: {1}, Time: {2}\n".format((start / (batch_size * num_batch_per_epoch), track_dict["loss"], end_time - start_time)))
+                sys.stdout.write("\nEpochID: {0}, Loss: {1}, Time: {2}\n".format(start / (batch_size * num_batch_per_epoch) + it * num_batch_per_epoch, track_dict["loss"], end_time - start_time))
                 start_time = time.time()                
             if np.mod(start, batch_size * num_batch_per_epoch * save_num_epoch) == 0:
-                print "Epoch ", start / (batch_size * num_batch_per_epoch), " is done. Saving the model..."
+                print "Epoch ", start / (batch_size * num_batch_per_epoch) + it * num_batch_per_epoch, " is done. Saving the model..."
                 if not os.path.exists(model_dir):
                     os.makedirs(model_dir)
-                saver.save(session, model_dir, global_step=start/(batch_size*num_batch_per_epoch))      
+                saver.save(session, model_dir, global_step=start/(batch_size*num_batch_per_epoch)+it*num_batch_per_epoch)      
 
 if __name__ == "__main__":
     train()
