@@ -11,7 +11,7 @@ info_csv_path = "./data/" + sys.argv[1] + "/info.csv"
 sentence_length = sys.argv[2] #min_mutual_sentence_length = 8, max_mutual_sentence_length = 40
 
 #open
-output_label = json.loada(codecs.open(label_json_path, "r", "utf-8"))
+output_label = json.load(codecs.open(label_json_path, "r", "utf-8"))
 
 #preprocess
 for label in output_label:
