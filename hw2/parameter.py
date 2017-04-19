@@ -8,7 +8,7 @@ batch_size = 10
 num_epoch = 500
 learning_rate = 0.001
 save_per_epoch = 10
-test_model_version = 440
+test_model_version = 0
 
 #for other settings
 per_process_gpu_memory_fraction = 0.8
@@ -16,8 +16,10 @@ max_to_keep = 10
 
 #path
 train_feat_dir = "./data/training/feat/"
+train_label_dir = "./data/training/label/"
 train_info_path = "./data/training/info.csv"
 test_feat_dir = "./data/testing/feat/"
+test_label_dir = "./data/testing/label/"
 test_info_path = "./data/testing/info.csv"
 model_dir = "model/" + "_".join((
         "num_vocabulary", str(caption_size),
