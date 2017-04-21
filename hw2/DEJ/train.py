@@ -15,7 +15,7 @@ def train():
     all_merge_labels = [ label for labels in train_labels for label in labels ] + [ label for labels in test_labels for label in labels ]
     if Embd_flag is True:
 		word_id, _, init_bias_vector,embd = buildEmbd(all_merge_labels)
-	else:
+    else:
 		word_id, _, init_bias_vector = buildVocab(all_merge_labels)
     #initialize model
     model = VideoCaptionGenerator(
