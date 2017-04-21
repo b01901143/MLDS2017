@@ -7,7 +7,7 @@ import collections
 import pandas as pd
 import numpy as np
 import pickle
-
+from parameter import vocab_size 
 def getInfo(info_path):
 	return pd.read_csv(info_path, sep=",")
 
@@ -34,8 +34,9 @@ def buildVocab(label_sentences):
 	init_bias_vector = np.log(init_bias_vector)
 	init_bias_vector -= np.max(init_bias_vector) 
 	return word_id, id_word, init_bias_vector
-def buildEmbd():
+def buildEmbd(label_sentences):
 	word_id= pickle.load(open('word_dic'))
 	id_word= pickle.load(open('id_dic'))
 	embd   = pickle.load(open('embd_dic'))
-	return word_id , id_word , embd
+	init_bias_vector = np.zeros(vocab_size,dtype=np.float32)
+	return word_id , id_word , init_bias_vector ,embd

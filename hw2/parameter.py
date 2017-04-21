@@ -1,9 +1,10 @@
 #parameter
+vocab_size =30000
 video_size = 4096
 video_step = 80
 caption_size = 6193 #fix
 caption_step = 42
-hidden_size = 256
+hidden_size = 300 # fix using pretrained embedding:300
 batch_size = 10
 num_iter = 10
 num_epoch_per_iter = 37 #fix

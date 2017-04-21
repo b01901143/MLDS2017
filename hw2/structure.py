@@ -3,7 +3,7 @@ import tensorflow as tf
 from parameter import *
 
 class VideoCaptionGenerator():
-    def __init__(self, video_size, video_step, caption_size, caption_step, hidden_size, batch_size, init_bias_vector):
+    def __init__(self, video_size, video_step, caption_size, caption_step, hidden_size, batch_size, init_bias_vector ,pretrained_embd):
         #parameters
         self.video_size = video_size
         self.video_step = video_step

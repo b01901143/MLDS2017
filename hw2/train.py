@@ -15,7 +15,7 @@ def train():
     test_labels = [ getLabel(test_label_dir + path) for path in test_data["label_path"].values ]
     all_merge_labels = [ label for labels in train_labels for label in labels ] + [ label for labels in test_labels for label in labels ]
     if Embd_flag is True:
-		word_id, _, init_bias_vector = buildEmbd()
+		word_id, _, init_bias_vector,embd = buildEmbd(all_merge_labels)
 	else:
 		word_id, _, init_bias_vector = buildVocab(all_merge_labels)
     #initialize model
@@ -26,7 +26,8 @@ def train():
             caption_step=caption_step,
             hidden_size=hidden_size,
             batch_size=batch_size,
-            init_bias_vector=init_bias_vector
+            init_bias_vector=init_bias_vector,
+			pretrained_embd=embd
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_loss, tf_optimizer = model.buildModel()
