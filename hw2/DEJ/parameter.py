@@ -11,7 +11,7 @@ num_epoch_per_iter = 37 #fix
 num_batch_per_epoch = 145 #fix
 save_num_epoch = 10
 learning_rate = 0.001
-test_model_version = 0
+test_model_version = 363
 
 #for other settings
 per_process_gpu_memory_fraction = 0.8

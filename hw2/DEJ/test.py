@@ -10,9 +10,9 @@ def test():
     test_labels = [ getLabel(test_label_dir + path) for path in test_data["label_path"].values ]
     all_merge_labels = [ label for labels in train_labels for label in labels ] + [ label for labels in test_labels for label in labels ]
     if Embd_flag is True:
-	    word_id, _, init_bias_vector, embd = buildEmbd (all_merge_labels)
+	    word_id, id_word, init_bias_vector, embd = buildEmbd (all_merge_labels)
     else:
-	    word_id, _, init_bias_vector = buildVocab(all_merge_labels)
+	    word_id, id_word, init_bias_vector = buildVocab(all_merge_labels)
 	#initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -21,7 +21,7 @@ def test():
             caption_step=caption_step,
             hidden_size=hidden_size,
             batch_size=batch_size,
-            init_bias_vector=init_bias_vector
+            init_bias_vector=init_bias_vector,
 			pretrained_embd =embd
         )
     #build model
@@ -33,9 +33,10 @@ def test():
     #restore variables
     saver.restore(session, test_model_path)
     #run testing
-    
+    f_out = open(test_model_path+'_test_output.txt','wb')
     for index, feat_path in enumerate(test_data["feat_path"]):
         print "VideoID: " + str(index) + " Path: " + feat_path
+        f_out.write("VideoID: " + str(index) + " Path: " + feat_path + ':')
         video_array = np.load(test_feat_dir + feat_path)[None,...] 
         video_array_mask = np.ones((video_array.shape[0], video_array.shape[1]))
         #caption_array
@@ -48,8 +49,12 @@ def test():
         }
         track_dict = session.run(fetch_dict, feed_dict)
         caption_array_id = track_dict["caption_array_id"]
-        caption_array = [ id_word[idx] for idx in caption_array_id ]
+        caption_array = [ id_word[idx].encode('utf-8') for idx in caption_array_id ]
         print caption_array    
-
+        for word in caption_array:
+		    f_out.write(' '+word)
+        f_out.write('\n')
+    print 'out of loop'
+    f_out.close()
 if __name__ == "__main__":
     test()
