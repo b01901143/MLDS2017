@@ -9,7 +9,7 @@ output_keep_prob = 1
 num_epoch = 3000
 learning_rate = 0.001
 save_per_epoch = 10
-test_model_version = 20
+test_model_version = 0
 
 #for other settings
 per_process_gpu_memory_fraction = 0.8
