@@ -6,7 +6,6 @@ import tensorflow as tf
 from utility import *
 from parameter import *
 from structure import *
-Embd_flag = true 
 
 def train():
     #prepare data
@@ -91,12 +90,12 @@ def train():
             if np.mod(start, batch_size * num_batch_per_epoch) == 0:
                 end_time = time.time()
                 sys.stdout.write("\nEpochID: {0}, Loss: {1}, Time: {2}\n".format(start / (batch_size * num_batch_per_epoch) + it * num_epoch_per_iter, track_dict["loss"], end_time - start_time))
-                start_time = time.time()                
+                start_time = time.time()
             if np.mod(start, batch_size * num_batch_per_epoch * save_num_epoch) == 0:
                 print "Epoch ", start / (batch_size * num_batch_per_epoch) + it * num_epoch_per_iter, " is done. Saving the model..."
                 if not os.path.exists(model_dir):
                     os.makedirs(model_dir)
-                saver.save(session, model_dir, global_step=start/(batch_size*num_batch_per_epoch)+it*num_epoch_per_iter)      
+                saver.save(session, model_dir, global_step=start/(batch_size*num_batch_per_epoch)+it*num_epoch_per_iter)
 
 if __name__ == "__main__":
     train()

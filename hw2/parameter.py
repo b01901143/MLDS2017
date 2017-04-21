@@ -16,7 +16,7 @@ test_model_version = 0
 #for other settings
 per_process_gpu_memory_fraction = 0.8
 max_to_keep = 10
-
+Embd_flag= False
 #path
 train_feat_dir = "./data/training/feat/"
 train_label_dir = "./data/training/label/"
