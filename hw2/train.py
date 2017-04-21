@@ -6,6 +6,7 @@ import tensorflow as tf
 from utility import *
 from parameter import *
 from structure import *
+Embd_flag = true 
 
 def train():
     #prepare data
@@ -13,7 +14,10 @@ def train():
     train_feats, train_labels = [ getFeat(train_feat_dir + path) for path in train_data["feat_path"].values ], [ getLabel(train_label_dir + path) for path in train_data["label_path"].values ]
     test_labels = [ getLabel(test_label_dir + path) for path in test_data["label_path"].values ]
     all_merge_labels = [ label for labels in train_labels for label in labels ] + [ label for labels in test_labels for label in labels ]
-    word_id, _, init_bias_vector = buildVocab(all_merge_labels)
+    if Embd_flag is True:
+		word_id, _, init_bias_vector = buildEmbd()
+	else:
+		word_id, _, init_bias_vector = buildVocab(all_merge_labels)
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,

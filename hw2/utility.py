@@ -6,6 +6,7 @@ import operator
 import collections
 import pandas as pd
 import numpy as np
+import pickle
 
 def getInfo(info_path):
 	return pd.read_csv(info_path, sep=",")
@@ -33,3 +34,8 @@ def buildVocab(label_sentences):
 	init_bias_vector = np.log(init_bias_vector)
 	init_bias_vector -= np.max(init_bias_vector) 
 	return word_id, id_word, init_bias_vector
+def buildEmbd():
+	word_id= pickle.load(open('word_dic'))
+	id_word= pickle.load(open('id_dic'))
+	embd   = pickle.load(open('embd_dic'))
+	return word_id , id_word , embd
