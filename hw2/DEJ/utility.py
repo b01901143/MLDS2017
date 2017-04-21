@@ -35,8 +35,8 @@ def buildVocab(label_sentences):
 	init_bias_vector -= np.max(init_bias_vector)
 	return word_id, id_word, init_bias_vector
 def buildEmbd(label_sentences):
-	word_id= pickle.load(open('./vocab/word_dic'))
-	id_word= pickle.load(open('./vocab/id_dic'))
-	embd   = pickle.load(open('./vocab/embd_dic'))
+	word_id= pickle.load(open('../vocab/word_dic'))
+	id_word= pickle.load(open('../vocab/id_dic'))
+	embd   = pickle.load(open('../vocab/embd_dic'))
 	init_bias_vector = np.zeros(vocab_size,dtype=np.float32)
 	return word_id , id_word , init_bias_vector ,embd
