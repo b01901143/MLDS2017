@@ -3,7 +3,7 @@ import tensorflow as tf
 from parameter import *
 
 class VideoCaptionGenerator():
-    def __init__(self, video_size, video_step, caption_size, caption_step, hidden_size, batch_size, output_keep_prob, init_bias_vector):
+    def __init__(self, video_size, video_step, caption_size, caption_step, hidden_size, batch_size, output_keep_prob, init_bias_vector , pretrained_embd):
         #parameters
         self.video_size = video_size
         self.video_step = video_step
@@ -13,9 +13,13 @@ class VideoCaptionGenerator():
         self.batch_size = batch_size
         self.output_keep_prob = output_keep_prob
         self.init_bias_vector = init_bias_vector
+
         #encode_layers
         with tf.device("/cpu:0"):
-            self.caption_encode_W = tf.Variable(tf.random_uniform([caption_size, hidden_size], -0.1, 0.1), name="caption_encode_W")
+            if Embd_flag is False:
+                self.caption_encode_W = tf.Variable(tf.random_uniform([caption_size, hidden_size], -0.1, 0.1), name="caption_encode_W")
+            else :
+                self.caption_encode_W = tf.Variable(pretrained_embd,name="caption_encode_W")
         self.video_encode_W = tf.Variable(tf.random_uniform([video_size, hidden_size], -0.1, 0.1), name="video_encode_W")
         self.video_encode_b = tf.Variable(tf.zeros([hidden_size]), name="video_encode_b")        
         #lstm_layers

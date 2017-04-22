@@ -14,7 +14,10 @@ def train():
     train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
     train_label = [ json.load(open(train_label_dir + path)) for path in train_data["label_path"].values ]
     test_label = [ json.load(open(test_label_dir + path)) for path in test_data["label_path"].values ]
-    word_id, _, init_bias_vector = buildVocab(train_label + test_label)
+    if Embd_flag is True:
+		word_id, _, init_bias_vector,embd = buildEmbd(train_label + test_label)
+    else:
+		word_id, _, init_bias_vector = buildVocab(train_label + test_label)	
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -24,7 +27,9 @@ def train():
             hidden_size=hidden_size,
             batch_size=batch_size,
             output_keep_prob=output_keep_prob,
-            init_bias_vector=init_bias_vector
+            init_bias_vector=init_bias_vector,
+			pretrained_embd=embd
+			
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_loss, tf_optimizer = model.buildModel()

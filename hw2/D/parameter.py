@@ -3,7 +3,7 @@ video_size = 4096
 video_step = 80
 caption_size = 2082
 caption_step = 12
-hidden_size = 256
+hidden_size = 256 # use 300 if using glove
 batch_size = 10
 output_keep_prob = 1
 num_epoch = 500
@@ -14,7 +14,7 @@ test_model_version = 0
 #for other settings
 per_process_gpu_memory_fraction = 0.8
 max_to_keep = 10
-
+Embd_flag= False
 #path
 train_feat_dir = "./data/training/feat/"
 train_label_dir = "./data/training/label/"

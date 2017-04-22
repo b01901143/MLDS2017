@@ -11,7 +11,10 @@ def test():
     train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
     train_label = [ json.load(open(train_label_dir + path)) for path in train_data["label_path"].values ]
     test_label = [ json.load(open(test_label_dir + path)) for path in test_data["label_path"].values ]
-    _, id_word, init_bias_vector = buildVocab(train_label + test_label)
+    if Embd_flag is True:
+		_, id_word, init_bias_vector,embd = buildEmbd(train_label + test_label)
+    else:
+		_, id_word, init_bias_vector = buildVocab(train_label + test_label)	
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -21,7 +24,8 @@ def test():
             hidden_size=hidden_size,
             batch_size=batch_size,
             output_keep_prob=output_keep_prob,
-            init_bias_vector=init_bias_vector
+            init_bias_vector=init_bias_vector,
+			pretrained_embd = embd
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array_id = model.buildGenerator()
@@ -32,8 +36,10 @@ def test():
     #restore variables
     saver.restore(session, test_model_path)
     #run testing
+    f_out = open(test_model_path+'_test_output.txt','wb')
     for index, feat_path in enumerate(test_data["feat_path"]):
         print "VideoID: " + str(index) + " Path: " + feat_path
+        f_out.write("VideoID: " + str(index) + " Path: " + feat_path + ':')
         video_array = np.load(test_feat_dir + feat_path)[None,...] 
         video_array_mask = np.ones((video_array.shape[0], video_array.shape[1]))
         #caption_array
@@ -46,8 +52,11 @@ def test():
         }
         track_dict = session.run(fetch_dict, feed_dict)
         caption_array_id = track_dict["caption_array_id"]
-        caption_array = [ id_word[idx] for arr in caption_array_id for idx in arr ]
-        print caption_array   
-
+        caption_array = [ id_word[idx].encode('utf-8') for arr in caption_array_id for idx in arr ]
+        print caption_array    
+        for word in caption_array:
+		    f_out.write(' '+word)
+        f_out.write('\n')
+    f_out.close()
 if __name__ == "__main__":
     test()
