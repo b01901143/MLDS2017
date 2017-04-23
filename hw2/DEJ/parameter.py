@@ -16,7 +16,7 @@ test_model_version = 363
 #for other settings
 per_process_gpu_memory_fraction = 0.8
 max_to_keep = 10
-Embd_flag= True
+Embd_flag= False
 #path
 train_feat_dir = "../data/training/feat/"
 train_label_dir = "../data/training/label/"
@@ -28,6 +28,7 @@ model_dir = "model/" + "_".join((
         "num_vocabulary", str(caption_size),
         "hidden_size", str(hidden_size),
         "num_iter", str(num_iter),
-        "learning_rate", str(learning_rate)
+        "learning_rate", str(learning_rate),
+		"pretrained_embd", str(Embd_flag)
     )) + "/"
 test_model_path = model_dir + "-" + str(test_model_version)

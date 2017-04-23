@@ -13,6 +13,7 @@ def train():
     train_feats, train_labels = [ getFeat(train_feat_dir + path) for path in train_data["feat_path"].values ], [ getLabel(train_label_dir + path) for path in train_data["label_path"].values ]
     test_labels = [ getLabel(test_label_dir + path) for path in test_data["label_path"].values ]
     all_merge_labels = [ label for labels in train_labels for label in labels ] + [ label for labels in test_labels for label in labels ]
+    embd = []
     if Embd_flag is True:
 		word_id, _, init_bias_vector,embd = buildEmbd(all_merge_labels)
     else:
