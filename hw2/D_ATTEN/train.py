@@ -14,7 +14,7 @@ def train():
     train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
     train_label = [ json.load(open(train_label_dir + path)) for path in train_data["label_path"].values ]
     test_label = [ json.load(open(test_label_dir + path)) for path in test_data["label_path"].values ]
-    word_id, _, init_bias_vector = buildVocab(train_label + test_label)
+    embd = []
     if Embd_flag is True:
 		word_id, _, init_bias_vector,embd = buildEmbd(train_label + test_label)
     else:
@@ -62,7 +62,7 @@ def train():
             #caption_array
             caption_array = np.zeros((batch_size, caption_step), dtype="int32")
             for index in range(len(current_caption_id_batch)):
-                caption_array[index, :len(current_caption_id_batch[index])] = current_caption_id_batch[index]
+                caption_array[index, :len(current_caption_id_batch[index])]= current_caption_id_batch[index]
             #caption_array_mask
             caption_array_mask = np.zeros((batch_size, caption_step))
             nonzero_length = np.array(map(lambda x: (x != 0).sum() - 1, caption_array))
