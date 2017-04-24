@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import pickle
 from parameter import  caption_size
+from bleu import *
 def getInfo(info_path):
 	return pd.read_csv(info_path, sep=",")
 
@@ -32,3 +33,17 @@ def buildEmbd(label_sentences):
 	embd   = pickle.load(open('../vocab/embd_dic'))
 	init_bias_vector = np.zeros(caption_size,dtype=np.float32)
 	return word_id , id_word , init_bias_vector ,embd
+def arr2str(words):
+	string=''
+	for word in words:
+		if word == "<eos>":
+			break
+		string+=word+' '	
+	return string
+def bleu_score(labels, caption):
+	score = []
+	for label in labels:
+		score.append(BLEU_2(label[:-1], caption))
+	score_mean = np.mean(score)
+	print score_mean
+	return score_mean
