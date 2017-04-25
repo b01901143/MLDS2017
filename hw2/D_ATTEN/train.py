@@ -79,6 +79,7 @@ def train():
 
             # schedule sampling
             sampling_prob = 1.0 - float(epoch)/num_epoch #linear
+            # sampling_prob = 0.999 ** epoch #exponential
 
             s = np.random.binomial(1, sampling_prob)
             # print float(sum(s)) / 10000, sampling_prob, epoch

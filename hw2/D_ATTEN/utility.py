@@ -47,3 +47,5 @@ def bleu_score(labels, caption):
 	score_mean = np.mean(score)
 	print score_mean
 	return score_mean
+def inv_sigmoid(x):
+	return np.log(1.0/x -1)
