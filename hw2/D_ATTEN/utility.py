@@ -43,7 +43,7 @@ def arr2str(words):
 def bleu_score(labels, caption):
 	score = []
 	for label in labels:
-		score.append(BLEU_2(label[:-1], caption))
+		score.append(BLEU_2(caption,label[:-1]))
 	score_mean = np.mean(score)
 	print score_mean
 	return score_mean

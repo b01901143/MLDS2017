@@ -67,12 +67,13 @@ def test():
         _bleu=bleu_score(test_label[feat_path[:-4]], caption_string)
         bleu.append(_bleu )
         f_out.write(caption_string)
-        f_out.write('BLEU mean:'+str(_bleu))
+        f_out.write('   #BLEU mean:'+str(_bleu))
         f_out.write('\n')
 
     bleu_mean=np.mean(bleu)
     f_out.write('Overall BLEU:'+str(bleu_mean)) 
     f_out.close()
-    print bleu_mean
+    print 'Overall BLEU: ' + str(bleu_mean)
+    #print bleu
 if __name__ == "__main__":
     test()
