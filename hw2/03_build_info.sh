@@ -1,10 +1,10 @@
 #!/bin/bash
-echo "Preprocess info..."
+echo "Build info..."
 
-taken="one" #one/all
-bound=10 #8~40
+taken="all" #one/all
+bound=40 #8~40
 
 for type in "training" "testing"; do
-	python preprocess.py $type $taken $bound
-	echo "Finish Preprocessing" $type "info!!" 
+	python build_info.py $type $taken $bound
+	echo "Finish building" $type "info!!" 
 done

@@ -3,16 +3,20 @@ import os
 import sys
 import json
 import codecs
+import pickle
+import operator
+import collections
+import pandas as pd
 import numpy as np
 
 #argv
-embed_size = sys.argv[1]
-vocab_size = sys.argv[2]
+embed_size = int(sys.argv[1])
+vocab_size = int(sys.argv[2])
 
 #path
 glove_path = "./glove/glove.6B." + sys.argv[1] + "d.txt"
 train_feat_dir, train_label_dir, train_info_path = "./data/training/feat/", "./data/training/label/", "./data/training/info.csv"
-test_feat_dir, test_label_dir, test_info_path = "./data/testing/feat/", "./data/testing/label/", "../data/testing/info.csv"
+test_feat_dir, test_label_dir, test_info_path = "./data/testing/feat/", "./data/testing/label/", "./data/testing/info.csv"
 word_dic_path, id_dic_path, init_bias_dic_path, embed_dic_path = "./dic/word_dic", "./dic/id_dic", "./dic/init_bias_dic", "./dic/embed_dic"
 
 #function
@@ -25,19 +29,19 @@ def getFeat(feat_path):
 def getLabel(label_path):
     return json.load(codecs.open(label_path, "r", "utf-8"))
 
+def mergeLabel():
+    train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
+    train_labels = [ getLabel(train_label_dir + path) for path in train_data["label_path"].values ]
+    test_labels = [ getLabel(test_label_dir + path) for path in test_data["label_path"].values ]   
+    all_merge_labels = train_labels + test_labels
+    return all_merge_labels
+
 def parseWord(line):
 	_line=line.split()
 	word = _line[0]
 	_line= _line[1:]
 	embed = np.float32(_line)
 	return word , embed
-
-def readAll():
-    train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
-    train_feats, train_labels = [ getFeat(train_feat_dir + path) for path in train_data["feat_path"].values ], [ getLabel(train_label_dir + path) for path in train_data["label_path"].values ]
-    test_labels = [ getLabel(test_label_dir + path) for path in test_data["label_path"].values ]
-    all_merge_labels = [ label for labels in train_labels for label in labels ] + [ label for labels in test_labels for label in labels ]
-    return all_merge_labels
 
 def buildVocab(label_sentences):
     temp_collection_list = []
@@ -60,11 +64,11 @@ def buildVocab(label_sentences):
 
 def buildDic():
     #prepare data
-    label_sentences = readAll()
-    word_id, id_word, init_bias_vector = buildVocab() 
+    all_merge_labels = mergeLabel()
+    word_id, id_word, init_bias_vector = buildVocab(all_merge_labels) 
     #prepare glove
     embed_glove = {}
-    embed = np.zeros(shape=(caption_size,embed_size) , dtype=np.float32)
+    embed = np.zeros(shape=(vocab_size,embed_size) , dtype=np.float32)
     wordtoix, ixtoword = {}, {}
     ixtoword[0], ixtoword[1], ixtoword[2] = '<pad>', '<bos>' , '<eos>'
     wordtoix['<pad>'], wordtoix['<bos>'], wordtoix['<eos>'] = 0, 1, 2
@@ -72,7 +76,7 @@ def buildDic():
     lines = [ line for line in f_in.readlines() ]
     for id ,line in enumerate(lines):
         _word, _embed = parseWord(line)
-        wordtoix [_word] = id+3
+        wordtoix [_word] = id + 3
         embed_glove[id+3] = _embed
         print '\r parsing glove ', id ,
     for i in range(3):
@@ -84,18 +88,17 @@ def buildDic():
 		    embed[i] = embed_glove[ix]
         else :
             embed[i] = np.random.standard_normal(size=embed_size)
-        print(key, ' ', i, 'map to :', ix)	
-    word_dic, id_dic, init_bias_dic, embed_dic = open('word_dic','wb'), open('id_dic','wb'), open('init_bias_dic', 'w') open('embed_dic','wb')
-    pickle.dump(word_id, word_dic)
-    pickle.dump(id_word, id_dic)
-    pickle.dump(init_bias_vector, init_bias_dic)
-    pickle.dump(embed, embed_dic)
+        print key, ' ', i, 'map to :', ix	
+    word_dic, id_dic, init_bias_dic, embed_dic = open('word_dic','wb'), open('id_dic','wb'), open('init_bias_dic', 'w'), open('embed_dic','wb')
+    pickle.dump(word_id, word_dic_path)
+    pickle.dump(id_word, id_dic_path)
+    pickle.dump(init_bias_vector, init_bias_dic_path)
+    pickle.dump(embed, embed_dic_path)
     word_dic.close()
     id_dic.close()
     init_bias_dic.close()
     embed_dic.close()
     f_in.close()
-    return wordtoix, ixtoword , embed
 
 if __name__ == "__main__":
     buildDic()
