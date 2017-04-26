@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import json
-import pandas as pd
 import numpy as np
 import tensorflow as tf
 from utility import *
@@ -12,13 +11,7 @@ from structure import *
 def train():
     #prepare data
     train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
-    train_label = [ json.load(open(train_label_dir + path)) for path in train_data["label_path"].values ]
-    test_label = [ json.load(open(test_label_dir + path)) for path in test_data["label_path"].values ]
-    word_id, _, init_bias_vector = buildVocab(train_label + test_label)
-    if Embd_flag is True:
-		word_id, _, init_bias_vector,embd = buildEmbd(train_label + test_label)
-    else:
-		word_id, _, init_bias_vector = buildVocab(train_label + test_label)
+    word_id, _, init_bias_vector, embd = loadDic(word_dic_path, id_dic_path, init_bias_dic_path, embed_dic_path)
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -29,7 +22,7 @@ def train():
             batch_size=batch_size,
             output_keep_prob=output_keep_prob,
             init_bias_vector=init_bias_vector,
-			pretrained_embd = embd
+			pretrained_embd=embd
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_sampling_choice, tf_loss, tf_optimizer = model.buildModel()
@@ -46,16 +39,13 @@ def train():
         np.random.shuffle(index_list)
         current_train_data = train_data.ix[index_list]
         #batch
-        start_time = time.time()
-
-        
-        
+        start_time = time.time()        
         for start, end in zip(range(0, len(current_train_data), batch_size), range(batch_size, len(current_train_data), batch_size)):
             #video, caption batch
             current_batch = current_train_data[start:end]
             current_video_batch = map(lambda x: np.load(train_feat_dir + x), current_batch["feat_path"].values)
             current_caption_batch = [ "<bos> " + json.load(open(train_label_dir + path)) + " <eos>" for path in current_batch["label_path"].values ]
-            current_caption_id_batch = [ [ word_id[word] for word in sentence.lower().split(" ") ] for sentence in current_caption_batch ]
+            current_caption_id_batch = [ [ word_id[word] for word in sentence.lower().split(" ") if word in word_id ] for sentence in current_caption_batch ]
             #video_array
             video_array = np.zeros((batch_size, video_step, video_size), dtype="float32")
             for index, video in enumerate(current_video_batch):
@@ -76,16 +66,13 @@ def train():
                 "loss":tf_loss,
                 "optimizer":tf_optimizer,
             }
-
             # schedule sampling
             sampling_prob = 1.0 - float(epoch)/num_epoch # linear
             # sampling_prob = (1- 23e-4) ** epoch # exponential
             # sampling_prob = inv_sigmoid(epoch, 215) # inverse sigmoid
-
             s = np.random.binomial(1, sampling_prob)
             # print float(sum(s)) / 10000, sampling_prob, epoch
             sampling_choice = np.array(s, dtype="int32")
-
             feed_dict = {
                 tf_video_array:video_array,
                 tf_video_array_mask:video_array_mask,
@@ -97,7 +84,6 @@ def train():
             #print
             sys.stdout.write("\rBatchID: {0}, Loss: {1}".format(start / batch_size, track_dict["loss"]))
             sys.stdout.flush()
-
         end_time = time.time()
         sys.stdout.write("\nEpoch: {0}, Loss: {1}, Time: {2}\n".format(epoch, track_dict["loss"], end_time - start_time))
         #save
@@ -105,8 +91,7 @@ def train():
             print "Epoch ", epoch, " is done. Saving the model..."
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
-            saver.save(session, model_dir, global_step=epoch)   
-                 
+            saver.save(session, model_dir, global_step=epoch)            
 
 if __name__ == "__main__":
     train()

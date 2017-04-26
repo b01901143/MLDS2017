@@ -6,6 +6,7 @@ from utility import *
 from parameter import *
 from structure import *
 from bleu import *
+
 def test():
     #prepare data
     train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
