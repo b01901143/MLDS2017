@@ -36,8 +36,10 @@ class VideoCaptionGenerator():
         #return_tensors
         tf_video_array = tf.placeholder(tf.float32, [self.batch_size, self.video_step, self.video_size])
         tf_video_array_mask = tf.placeholder(tf.float32, [self.batch_size, self.video_step])
+        tf_max_prob_index = tf.ones([1], dtype=tf.int32)
         tf_caption_array = tf.placeholder(tf.int32, [self.batch_size, self.caption_step])
         tf_caption_array_mask = tf.placeholder(tf.float32, [self.batch_size, self.caption_step])
+        tf_sampling_choice = tf.placeholder(tf.int32, [])
         tf_loss = 0.0        
         #encode_tensors
         video_array_flat = tf.reshape(tf_video_array, [-1, self.video_size])
@@ -72,10 +74,13 @@ class VideoCaptionGenerator():
                 attention_embed = tf.reduce_sum(attentions_list, 0)
                 #current_embed
                 with tf.device("/cpu:0"):
-                    current_embed = tf.nn.embedding_lookup(self.caption_encode_W, tf_caption_array[:,step])
+                    current_embed_label = tf.nn.embedding_lookup(self.caption_encode_W, tf_caption_array[:,step])
+                    current_embed_model = tf.nn.embedding_lookup(self.caption_encode_W, tf_max_prob_index)
+                    current_embed = tf.cond(tf_sampling_choice > 0,lambda: current_embed_label,lambda: current_embed_model)
                 with tf.variable_scope("LSTM1"):
                     output_1, state_1 = self.lstm_1_dropout(tf.concat([attention_embed, current_embed], 1), state_1)
                 logits = tf.matmul(output_1, self.caption_decode_W) + self.caption_decode_b
+                tf_max_prob_index = tf.argmax(logits, 1)
                 labels = tf.sparse_to_dense(
                     tf.concat([tf.expand_dims(tf.range(self.batch_size), 1), tf.expand_dims(tf_caption_array[:, step+1], 1)], 1),
                     tf.stack([self.batch_size, self.caption_size]),
@@ -85,7 +90,7 @@ class VideoCaptionGenerator():
                 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels) * tf_caption_array_mask[:,step]
                 tf_loss += tf.reduce_sum(cross_entropy)
         tf_optimizer = tf.train.AdamOptimizer(learning_rate).minimize(tf_loss)     
-        return tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_loss, tf_optimizer
+        return tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_sampling_choice, tf_loss, tf_optimizer
     def buildGenerator(self):
         #placeholders
         tf_video_array = tf.placeholder(tf.float32, [1, self.video_step, self.video_size])
