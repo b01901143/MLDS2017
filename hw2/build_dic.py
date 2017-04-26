@@ -89,16 +89,10 @@ def buildDic():
         else :
             embed[i] = np.random.standard_normal(size=embed_size)
         print key, ' ', i, 'map to :', ix	
-    word_dic, id_dic, init_bias_dic, embed_dic = open('word_dic','wb'), open('id_dic','wb'), open('init_bias_dic', 'w'), open('embed_dic','wb')
-    pickle.dump(word_id, word_dic_path)
-    pickle.dump(id_word, id_dic_path)
-    pickle.dump(init_bias_vector, init_bias_dic_path)
-    pickle.dump(embed, embed_dic_path)
-    word_dic.close()
-    id_dic.close()
-    init_bias_dic.close()
-    embed_dic.close()
-    f_in.close()
+    pickle.dump(word_id, open(word_dic_path,'wb'))
+    pickle.dump(id_word, open(id_dic_path,'wb'))
+    pickle.dump(init_bias_vector, open(init_bias_dic_path, 'wb'))
+    pickle.dump(embed, open(embed_dic_path,'wb'))
 
 if __name__ == "__main__":
     buildDic()
