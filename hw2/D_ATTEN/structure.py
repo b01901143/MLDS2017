@@ -13,6 +13,7 @@ class VideoCaptionGenerator():
         self.batch_size = batch_size
         self.output_keep_prob = output_keep_prob
         self.init_bias_vector = init_bias_vector
+        self.test_batch_size = beam_width
         #encode_layers
         with tf.device("/cpu:0"):
             if Embd_flag is False:
@@ -36,7 +37,7 @@ class VideoCaptionGenerator():
         #return_tensors
         tf_video_array = tf.placeholder(tf.float32, [self.batch_size, self.video_step, self.video_size])
         tf_video_array_mask = tf.placeholder(tf.float32, [self.batch_size, self.video_step])
-        tf_max_prob_index = tf.ones([1], dtype=tf.int32)
+        tf_max_prob_index = tf.ones([self.batch_size], dtype=tf.int32)
         tf_caption_array = tf.placeholder(tf.int32, [self.batch_size, self.caption_step])
         tf_caption_array_mask = tf.placeholder(tf.float32, [self.batch_size, self.caption_step])
         tf_sampling_choice = tf.placeholder(tf.int32, [])
@@ -91,6 +92,7 @@ class VideoCaptionGenerator():
                 tf_loss += tf.reduce_sum(cross_entropy)
         tf_optimizer = tf.train.AdamOptimizer(learning_rate).minimize(tf_loss)     
         return tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_sampling_choice, tf_loss, tf_optimizer
+    
     def buildGenerator(self):
         #placeholders
         tf_video_array = tf.placeholder(tf.float32, [1, self.video_step, self.video_size])
@@ -138,3 +140,4 @@ class VideoCaptionGenerator():
                 tf_caption_array_id.append(tf_max_prob_index)
         tf_caption_array_id = tf.stack(tf_caption_array_id)
         return tf_video_array, tf_video_array_mask, tf_caption_array_id
+    
