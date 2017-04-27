@@ -1,0 +1,1 @@
+python baseline/test.py $1 $2

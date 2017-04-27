@@ -13,13 +13,12 @@ class VideoCaptionGenerator():
         self.batch_size = batch_size
         self.output_keep_prob = output_keep_prob
         self.init_bias_vector = init_bias_vector
-        self.test_batch_size = beam_width
         #encode_layers
         with tf.device("/cpu:0"):
             if Embd_flag is False:
                 self.caption_encode_W = tf.Variable(tf.random_uniform([caption_size, hidden_size], -0.1, 0.1), name="caption_encode_W")
             else :
-                self.caption_encode_W = tf.Variable(pretrained_embd,name="caption_encode_W")
+                self.caption_encode_W = tf.Variable(pretrained_embd, name="caption_encode_W")
         self.video_encode_W = tf.Variable(tf.random_uniform([video_size, hidden_size], -0.1, 0.1), name="video_encode_W")
         self.video_encode_b = tf.Variable(tf.zeros([hidden_size]), name="video_encode_b")        
         #lstm_layers
@@ -32,7 +31,7 @@ class VideoCaptionGenerator():
         self.video_attention_W = tf.Variable(tf.random_uniform([hidden_size, hidden_size], -0.1, 0.1), name="video_attention_W")
         self.video_attention_b = tf.Variable(tf.zeros([hidden_size]), name="video_attention_b")
         self.e_attention_W = tf.Variable(tf.random_uniform([hidden_size, hidden_size], -0.1, 0.1), name="e_attention_W")
-        self.e_attention_w = tf.Variable(tf.random_uniform([hidden_size, 1], -0.1, 0.1), name="e_attention_w")    
+        self.e_attention_w = tf.Variable(tf.random_uniform([hidden_size, 1], -0.1, 0.1), name="e_attention_w")        
     def buildModel(self):
         #return_tensors
         tf_video_array = tf.placeholder(tf.float32, [self.batch_size, self.video_step, self.video_size])
@@ -77,7 +76,7 @@ class VideoCaptionGenerator():
                 with tf.device("/cpu:0"):
                     current_embed_label = tf.nn.embedding_lookup(self.caption_encode_W, tf_caption_array[:,step])
                     current_embed_model = tf.nn.embedding_lookup(self.caption_encode_W, tf_max_prob_index)
-                    current_embed = tf.cond(tf_sampling_choice > 0,lambda: current_embed_label,lambda: current_embed_model)
+                    current_embed = tf.cond(tf_sampling_choice > 0,lambda: current_embed_label, lambda: current_embed_model)
                 with tf.variable_scope("LSTM1"):
                     output_1, state_1 = self.lstm_1_dropout(tf.concat([attention_embed, current_embed], 1), state_1)
                 logits = tf.matmul(output_1, self.caption_decode_W) + self.caption_decode_b
@@ -91,8 +90,7 @@ class VideoCaptionGenerator():
                 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels) * tf_caption_array_mask[:,step]
                 tf_loss += tf.reduce_sum(cross_entropy)
         tf_optimizer = tf.train.AdamOptimizer(learning_rate).minimize(tf_loss)     
-        return tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_sampling_choice, tf_loss, tf_optimizer
-    
+        return tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_sampling_choice, tf_loss, tf_optimizer    
     def buildGenerator(self):
         #placeholders
         tf_video_array = tf.placeholder(tf.float32, [1, self.video_step, self.video_size])
