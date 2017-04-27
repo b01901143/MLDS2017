@@ -64,10 +64,10 @@ def test():
         caption_array = [ id_word[idx].encode('utf-8') for arr in caption_array_id for idx in arr ]
         caption_string= arr2str(caption_array)   
         print caption_string
-        _caption_dic = {'caption': caption_string,'id': feat_path }
+        _caption_dic = {'caption': caption_string.strip(' \n'),'id': feat_path.strip('\n') }
         output_list.append(_caption_dic)
-    f_out = open('../output.json','wb')
-    json.dumps(output_list,f_out, indent=4)	
+    f_out = open('./output.json','w')
+    json.dump(output_list,f_out, indent=4)	
     f_out.close()
 
     #print bleu
