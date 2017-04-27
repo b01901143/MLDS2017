@@ -15,9 +15,9 @@ def test():
     test_label_json = json.load(open(test_label_all))
     test_label =  {label['id'] : label['caption'] for label in test_label_json}  
     if Embd_flag is True:
-		_, id_word, init_bias_vector,embd = buildEmbd(train_label + test_label_split)
+        _, id_word, init_bias_vector,embd = buildEmbd(train_label + test_label_split)
     else:
-		_, id_word, init_bias_vector = buildVocab(train_label + test_label_split)	
+        _, id_word, init_bias_vector = buildVocab(train_label + test_label_split)	
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -28,7 +28,7 @@ def test():
             batch_size=batch_size,
             output_keep_prob=output_keep_prob,
             init_bias_vector=init_bias_vector,
-			pretrained_embd = embd
+        	pretrained_embd = embd
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array_id = model.buildGenerator()
@@ -45,10 +45,10 @@ def test():
     bleu = []
     for index, feat_path in enumerate(test_data["feat_path"]):
         if pre_path == feat_path:             
-			continue
+            continue
         pre_path = feat_path
-        video_index += 1		
-        print "VideoID: " + str(video_index) + " Path: " + feat_path
+        video_index += 1        
+        print ("VideoID: " + str(video_index) + " Path: " + feat_path)
         f_out.write("VideoID: " + str(video_index) + " Path: " + feat_path + ':')
         video_array = np.load(test_feat_dir + feat_path)[None,...] 
         video_array_mask = np.ones((video_array.shape[0], video_array.shape[1]))
@@ -64,7 +64,7 @@ def test():
         caption_array_id = track_dict["caption_array_id"]
         caption_array = [ id_word[idx].encode('utf-8') for arr in caption_array_id for idx in arr ]
         caption_string= arr2str(caption_array)   
-        print caption_string
+        print (caption_string)
         _bleu=bleu_score(test_label[feat_path[:-4]], caption_string)
         bleu.append(_bleu )
         f_out.write(caption_string)
@@ -74,6 +74,6 @@ def test():
     bleu_mean=np.mean(bleu)
     f_out.write('Overall BLEU:'+str(bleu_mean)) 
     f_out.close()
-    print bleu_mean
+    print (bleu_mean)
 if __name__ == "__main__":
     test()

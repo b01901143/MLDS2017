@@ -37,11 +37,11 @@ def mergeLabel():
     return all_merge_labels
 
 def parseWord(line):
-	_line=line.split()
-	word = _line[0]
-	_line= _line[1:]
-	embed = np.float32(_line)
-	return word , embed
+    _line=line.split()
+    word = _line[0]
+    _line= _line[1:]
+    embed = np.float32(_line)
+    return word , embed
 
 def buildVocab(label_sentences):
     temp_collection_list = []
@@ -78,17 +78,17 @@ def buildDic():
         _word, _embed = parseWord(line)
         wordtoix [_word] = id + 3
         embed_glove[id+3] = _embed
-        print '\r parsing glove ', id ,
+        print ('\r parsing glove ', id ,)
     for i in range(3):
         embed_glove[i] = np.random.standard_normal(size=embed_size)    
-	#extract label's embedding
+    #extract label's embedding
     for key, i in word_id.iteritems():
         ix = wordtoix.get(key)
         if ix is not None:
-		    embed[i] = embed_glove[ix]
+    	    embed[i] = embed_glove[ix]
         else :
             embed[i] = np.random.standard_normal(size=embed_size)
-        print key, ' ', i, 'map to :', ix	
+        print (key, ' ', i, 'map to :', ix)
     pickle.dump(word_id, open(word_dic_path,'wb'))
     pickle.dump(id_word, open(id_dic_path,'wb'))
     pickle.dump(init_bias_vector, open(init_bias_dic_path, 'wb'))

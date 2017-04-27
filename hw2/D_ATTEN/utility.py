@@ -31,7 +31,7 @@ def bleu_score(labels, caption):
 	for label in labels:
 		score.append(BLEU_2(label[:-1], caption))
 	score_mean = np.mean(score)
-	print score_mean
+	print (score_mean)
 	return score_mean
 	
 def inv_sigmoid(x,k):

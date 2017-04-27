@@ -37,10 +37,10 @@ def test():
     saver = tf.train.Saver()
     ckpt = tf.train.get_checkpoint_state(model_dir)
     if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
-        print "restore model from %s..." % ckpt.model_checkpoint_path
+        print ("restore model from %s..." % ckpt.model_checkpoint_path)
         saver.restore(session, ckpt.model_checkpoint_path)
     else:
-        print "create a new model..."
+        print ("create a new model...")
         session.run(tf.global_variables_initializer())
     #run testing
     for index, (feat_path, label_path) in enumerate(zip(test_data["feat_path"], test_data["label_path"])): 
@@ -78,7 +78,7 @@ def test():
         outputs = [ int(np.argmax(logit)) for logit in track_dict["outputs"]  ]  
         outputs = [ output for output in outputs if output != 2 ]
         outputs = [ id_word[output] for output in outputs ]
-        print outputs
+        print (outputs)
         sys.stdout.flush()
         
 if __name__ == "__main__":
