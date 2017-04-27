@@ -15,9 +15,9 @@ def train():
     train_label = [ json.load(open(train_label_dir + path)) for path in train_data["label_path"].values ]
     test_label = [ json.load(open(test_label_dir + path)) for path in test_data["label_path"].values ]
     if Embd_flag is True:
-		word_id, _, init_bias_vector,embd = buildEmbd(train_label + test_label)
+    	word_id, _, init_bias_vector,embd = buildEmbd(train_label + test_label)
     else:
-		word_id, _, init_bias_vector = buildVocab(train_label + test_label)	
+    	word_id, _, init_bias_vector = buildVocab(train_label + test_label)	
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -28,8 +28,8 @@ def train():
             batch_size=batch_size,
             output_keep_prob=output_keep_prob,
             init_bias_vector=init_bias_vector,
-			pretrained_embd=embd
-			
+    		pretrained_embd=embd
+    		
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_loss, tf_optimizer = model.buildModel()
@@ -87,7 +87,7 @@ def train():
         sys.stdout.write("\nEpoch: {0}, Loss: {1}, Time: {2}\n".format(epoch, track_dict["loss"], end_time - start_time))
         #save
         if np.mod(epoch, save_per_epoch) == 0:
-            print "Epoch ", epoch, " is done. Saving the model..."
+            print ("Epoch ", epoch, " is done. Saving the model...")
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
             saver.save(session, model_dir, global_step=epoch)            

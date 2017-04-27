@@ -34,7 +34,7 @@ def test():
     #run testing
     f_out = open(test_model_path+'_test_output.txt','wb')
     for index, feat_path in enumerate(test_data["feat_path"]):
-        print "VideoID: " + str(index) + " Path: " + feat_path
+        print ("VideoID: " + str(index) + " Path: " + feat_path)
         f_out.write("VideoID: " + str(index) + " Path: " + feat_path + ':')
         video_array = np.load(test_feat_dir + feat_path)[None,...] 
         video_array_mask = np.ones((video_array.shape[0], video_array.shape[1]))
@@ -49,9 +49,9 @@ def test():
         track_dict = session.run(fetch_dict, feed_dict)
         caption_array_id = track_dict["caption_array_id"]
         caption_array = [ id_word[idx].encode('utf-8') for arr in caption_array_id for idx in arr ]
-        print caption_array    
+        print (caption_array)
         for word in caption_array:
-		    f_out.write(' '+word)
+    	    f_out.write(' '+word)
         f_out.write('\n')
     f_out.close()
 if __name__ == "__main__":

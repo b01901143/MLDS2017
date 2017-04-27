@@ -1,6 +1,7 @@
 import math
 import operator
 import sys
+from functools import reduce
 def count_ngram(candidate, references, n):
     clipped_count = 0
     count = 0
@@ -90,19 +91,19 @@ def BLEU():
     score = 0.  
     count = 0
     try:
-	    s = sys.argv[1]
-	    t =  sys.argv[2] 
+        s = sys.argv[1]
+        t =  sys.argv[2] 
 
-	    count += 1
-	    candidate = [s.strip()]
-	    references = [[t.strip()]] 
-	    precisions = []
-	    pr, bp = count_ngram(candidate, references, 1)
-	    precisions.append(pr)
-	    score = geometric_mean(precisions) * bp
-	    print "BLEU SCORE: " + str(score/count)
+        count += 1
+        candidate = [s.strip()]
+        references = [[t.strip()]] 
+        precisions = []
+        pr, bp = count_ngram(candidate, references, 1)
+        precisions.append(pr)
+        score = geometric_mean(precisions) * bp
+        print ("BLEU SCORE: " + str(score/count))
     except:
-	    print "Usage: python bleu_eval.py <candidate_sentence> <reference_sentence>"
+        print ("Usage: python bleu_eval.py <candidate_sentence> <reference_sentence>")
 
 ### Usage: python bleu_eval.py candidate_sentence reference_sentence
 ### Ref : https://github.com/vikasnar/Bleu

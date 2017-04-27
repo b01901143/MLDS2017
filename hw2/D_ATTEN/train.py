@@ -7,6 +7,9 @@ import tensorflow as tf
 from utility import *
 from parameter import *
 from structure import *
+restore_flag = False
+train_model_version= 390
+train_model_path= model_dir + "-" + str(train_model_version)
 
 def train():
     #prepare data
@@ -22,7 +25,7 @@ def train():
             batch_size=batch_size,
             output_keep_prob=output_keep_prob,
             init_bias_vector=init_bias_vector,
-			pretrained_embd=embd
+    		pretrained_embd=embd
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array, tf_caption_array_mask, tf_sampling_choice, tf_loss, tf_optimizer = model.buildModel()
@@ -30,11 +33,17 @@ def train():
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=per_process_gpu_memory_fraction)
     session = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))
     saver = tf.train.Saver(max_to_keep=max_to_keep)
+    if restore_flag == True:
+        saver.restore(session,train_model_path)
+    #print train_model_path		
+	
     #initialize variables
     tf.global_variables_initializer().run()
     #run epochs
     for epoch in range(num_epoch):
         #shuffle
+        if epoch <= train_model_version:
+            continue		
         index_list = np.arange(len(train_data))
         np.random.shuffle(index_list)
         current_train_data = train_data.ix[index_list]
@@ -67,7 +76,7 @@ def train():
                 "optimizer":tf_optimizer,
             }
             # schedule sampling
-            sampling_prob = 1.0 - float(epoch)/num_epoch # linear
+            sampling_prob = 1 - float(epoch)/1000 # linear
             # sampling_prob = (1- 23e-4) ** epoch # exponential
             # sampling_prob = inv_sigmoid(epoch, 215) # inverse sigmoid
             s = np.random.binomial(1, sampling_prob)
@@ -88,7 +97,7 @@ def train():
         sys.stdout.write("\nEpoch: {0}, Loss: {1}, Time: {2}\n".format(epoch, track_dict["loss"], end_time - start_time))
         #save
         if np.mod(epoch, save_per_epoch) == 0:
-            print "Epoch ", epoch, " is done. Saving the model..."
+            print ("Epoch ", epoch, " is done. Saving the model...")
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
             saver.save(session, model_dir, global_step=epoch)            

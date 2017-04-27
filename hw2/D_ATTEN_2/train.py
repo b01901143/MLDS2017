@@ -36,10 +36,10 @@ def train():
     saver = tf.train.Saver()
     ckpt = tf.train.get_checkpoint_state(model_dir)
     if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
-        print "restore model from %s..." % ckpt.model_checkpoint_path
+        print ("restore model from %s..." % ckpt.model_checkpoint_path)
         saver.restore(session, ckpt.model_checkpoint_path)
     else:
-        print "create a new model..."
+        print ("create a new model...")
         session.run(tf.global_variables_initializer())
     #run epochs
     current_step = 0
@@ -95,7 +95,7 @@ def train():
             if current_step % steps_per_check == 0:
                 perplexity = math.exp(float(step_loss)) if step_loss < 300 else float("inf")
                 record_global_step, record_learning_rate = session.run(model.global_step), session.run(model.learning_rate) 
-                print "global step %d learning rate %.4f step-time %.2f perplexity %.2f" % (record_global_step, record_learning_rate, step_time, perplexity)
+                print ("global step %d learning rate %.4f step-time %.2f perplexity %.2f" % (record_global_step, record_learning_rate, step_time, perplexity))
                 if len(previous_step_losses) > 2 and step_loss > max(previous_step_losses[-3:]):
                     session.run(model.learning_rate_decay_op)
                 previous_step_losses.append(step_loss)
@@ -103,7 +103,7 @@ def train():
                 step_time, step_loss = 0.0, 0.0
                 sys.stdout.flush()
             if current_step % steps_per_save == 0:
-                print "save model %d" 
+                print ("save model %d" )
                 saver.save(session, checkpoint_path, global_step=model.global_step)
 
 if __name__ == "__main__":
