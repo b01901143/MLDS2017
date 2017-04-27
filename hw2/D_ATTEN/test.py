@@ -6,6 +6,9 @@ from utility import *
 from parameter import *
 from structure import *
 from bleu import *
+
+test_model_version = 400
+test_model_path = model_dir + "-" + str(test_model_version)
 def test():
     #prepare data
     train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)

@@ -4,13 +4,12 @@ video_step = 80
 caption_size = 6193 # 6193 for all embd labels , 6043 for non pretrained all labels
 caption_step = 22
 hidden_size = 300 # use 300 if using glove
-batch_size = 100
+batch_size = 128
 output_keep_prob = 1
 num_epoch = 2500
 learning_rate = 0.001
 save_per_epoch = 10
-test_model_version = 420
-
+beam_width = 1
 #for other settings
 per_process_gpu_memory_fraction = 0.8
 max_to_keep = 10
@@ -30,4 +29,4 @@ model_dir = "models/" + "_".join((
         "num_epoch", str(num_epoch),
         "learning_rate", str(learning_rate)
     )) + "/"
-test_model_path = model_dir + "-" + str(test_model_version)
+
