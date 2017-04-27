@@ -34,7 +34,15 @@ def test():
     session = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))
     saver = tf.train.Saver(max_to_keep=max_to_keep)
     #restore variables
-    saver.restore(session, test_model_path)
+    #saver.restore(session, test_model_path)
+    
+    ckpt = tf.train.get_checkpoint_state(model_dir)
+    if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
+        print ("restore model from %s..." % ckpt.model_checkpoint_path)
+        saver.restore(session, ckpt.model_checkpoint_path)
+    else:
+        print ("create a new model...")
+        session.run(tf.global_variables_initializer())
     #run testing
     f_out = open(test_model_path + '_test_output.txt','wb')
     pre_path = ' '
