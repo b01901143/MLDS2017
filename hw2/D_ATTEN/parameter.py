@@ -22,7 +22,7 @@ Embd_flag = True
 train_feat_dir, train_label_dir, train_info_path = "../data/training/feat/", "../data/training/label/", "../data/training/info.csv"
 test_feat_dir, test_label_dir, test_info_path  = "../data/testing/feat/", "../data/testing/label/", "../data/testing/info.csv"
 word_dic_path, id_dic_path, init_bias_dic_path, embed_dic_path =  "../dic/word_dic", "../dic/id_dic", "../dic/init_bias_dic", "../dic/embed_dic"
-test_label_all = "../data/testing/label.json"
+test_label_path = "../data/testing/label.json"
 model_dir = "models/" + "_".join((
         "num_vocabulary", str(caption_size),
         "hidden_size", str(hidden_size),
