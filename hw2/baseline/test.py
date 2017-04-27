@@ -19,9 +19,9 @@ def test():
     test_label_json = json.load(open(test_label_all))
     test_label =  {label['id'] : label['caption'] for label in test_label_json}  
     if Embd_flag is True:
-		_, id_word, init_bias_vector,embd = buildEmbd(train_label + test_label_split)
+    	_, id_word, init_bias_vector,embd = buildEmbd(train_label + test_label_split)
     else:
-		_, id_word, init_bias_vector = buildVocab(train_label + test_label_split)	
+    	_, id_word, init_bias_vector = buildVocab(train_label + test_label_split)	
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -32,7 +32,7 @@ def test():
             batch_size=batch_size,
             output_keep_prob=output_keep_prob,
             init_bias_vector=init_bias_vector,
-			pretrained_embd = embd
+    		pretrained_embd = embd
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array_id = model.buildGenerator()
@@ -47,8 +47,8 @@ def test():
     f_test_id = open(testing_id_path)
     output_list = [] 
     for index, feat_path in enumerate(f_test_id.readlines()):
-        	
-        print "VideoID: " + str(index) + " Path: " + feat_path.strip('\n')
+            
+        print ("VideoID: " + str(index) + " Path: " + feat_path.strip('\n'))
         video_array = np.load(feature_path+feat_path.strip('\n')+'.npy')[None,...]                    # adjusted for handout
         video_array_mask = np.ones((video_array.shape[0], video_array.shape[1]))
         #caption_array
@@ -63,11 +63,11 @@ def test():
         caption_array_id = track_dict["caption_array_id"]
         caption_array = [ id_word[idx].encode('utf-8') for arr in caption_array_id for idx in arr ]
         caption_string= arr2str(caption_array)   
-        print caption_string
+        print (caption_string)
         _caption_dic = {'caption': caption_string.strip(' \n'),'id': feat_path.strip('\n') }
         output_list.append(_caption_dic)
     f_out = open('./output.json','w')
-    json.dump(output_list,f_out, indent=4)	
+    json.dump(output_list,f_out, indent=4)    
     f_out.close()
 
     #print bleu

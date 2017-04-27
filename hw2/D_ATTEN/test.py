@@ -12,20 +12,9 @@ test_model_path = model_dir + "-" + str(test_model_version)
 def test():
     #prepare data
     train_data, test_data = getInfo(train_info_path), getInfo(test_info_path)
-<<<<<<< HEAD
     word_id, id_word, init_bias_vector, embd = loadDic(word_dic_path, id_dic_path, init_bias_dic_path, embed_dic_path)	 
     test_label_json = json.load(open(test_label_path))
     test_label =  {label['id'] : label['caption'] for label in test_label_json} 
-=======
-    train_label = [ json.load(open(train_label_dir + path)) for path in train_data["label_path"].values ]
-    test_label_split = [ json.load(open(test_label_dir + path)) for path in test_data["label_path"].values ]
-    test_label_json = json.load(open(test_label_all))
-    test_label =  {label['id'] : label['caption'] for label in test_label_json}  
-    if Embd_flag is True:
-        _, id_word, init_bias_vector,embd = buildEmbd(train_label + test_label_split)
-    else:
-        _, id_word, init_bias_vector = buildVocab(train_label + test_label_split)	
->>>>>>> 3d5176b75af1b93556233d182987102b6be91c0e
     #initialize model
     model = VideoCaptionGenerator(
             video_size=video_size,
@@ -36,11 +25,7 @@ def test():
             batch_size=batch_size,
             output_keep_prob=output_keep_prob,
             init_bias_vector=init_bias_vector,
-<<<<<<< HEAD
             pretrained_embd=embd
-=======
-        	pretrained_embd = embd
->>>>>>> 3d5176b75af1b93556233d182987102b6be91c0e
         )
     #build model
     tf_video_array, tf_video_array_mask, tf_caption_array_id = model.buildGenerator()
@@ -75,32 +60,16 @@ def test():
         track_dict = session.run(fetch_dict, feed_dict)
         caption_array_id = track_dict["caption_array_id"]
         caption_array = [ id_word[idx].encode('utf-8') for arr in caption_array_id for idx in arr ]
-<<<<<<< HEAD
         caption_string = arr2str(caption_array)   
-        print feat_path
+        print (feat_path)
         _bleu = bleu_score(test_label[feat_path[:-4]], caption_string)
         bleu.append(_bleu )
         f_out.write(caption_string)
         f_out.write('BLEU mean:' + str(_bleu))
-=======
-        caption_string= arr2str(caption_array)   
-        print (caption_string)
-        _bleu=bleu_score(test_label[feat_path[:-4]], caption_string)
-        bleu.append(_bleu )
-        f_out.write(caption_string)
-        f_out.write('   #BLEU mean:'+str(_bleu))
->>>>>>> 3d5176b75af1b93556233d182987102b6be91c0e
         f_out.write('\n')
     bleu_mean = np.mean(bleu)
     f_out.write('Overall BLEU:' + str(bleu_mean)) 
     f_out.close()
-<<<<<<< HEAD
-    print bleu_mean
-
-=======
-    print 'Overall BLEU: ' + str(bleu_mean)
-    #print bleu
     print (bleu_mean)
->>>>>>> 3d5176b75af1b93556233d182987102b6be91c0e
 if __name__ == "__main__":
     test()
