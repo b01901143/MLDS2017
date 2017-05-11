@@ -1,7 +1,8 @@
 #!/bin/bash
 echo "Download data and unzip them..."
 
-wget -O data.zip https://drive.google.com/a/media.ee.ntu.edu.tw/file/d/0B2hNk0_VowQmeEZoNENaWkIxX2c/view?usp=sharing
+curl -H "Authorization: Bearer ya29.GltHBFwtUhu7ug_H81RKrVQPEw6al0iOZSEZ-rHYrRd4buTcxB-mHFw2AYtFnR6ngszIoENEAJrHD08tNkZ7c8xyplOjWaC6tfhCJACDwl9PDmjHeJzN2kB1vFJh" https://www.googleapis.com/drive/v3/files/0B2hNk0_VowQmZnk2YU5zYUpKTms?alt=media -o data.zip
 unzip -u-o data.zip
+rm -rf data.zip
 
 echo "Finish downloading data!!"

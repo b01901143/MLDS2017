@@ -1,0 +1,101 @@
+VideoID: 1 Path: ScdUht-pM6s_53_63.avi.npy:a man is adding something to a man 's hand 
+BLEU mean:0.264489840487
+VideoID: 2 Path: wkgGxsuNVSg_34_41.avi.npy:a man is a flip by a white boat 
+BLEU mean:0.196135061247
+VideoID: 3 Path: BtQtRGI0F2Q_15_20.avi.npy:a man is riding a bicycle 
+BLEU mean:0.251909053715
+VideoID: 4 Path: k06Ge9ANKM8_5_16.avi.npy:a baby is playing with a ball 
+BLEU mean:0.285792887197
+VideoID: 5 Path: sZf3VDsdDPM_107_114.avi.npy:a man is talking to a woman 
+BLEU mean:0.356955309619
+VideoID: 6 Path: shPymuahrsc_5_12.avi.npy:a animal is sitting in a person sitting in a person sitting in a person sitting in a wide sitting in a wide sitting in a wide sitting in a wide sitting in her fore limbs 
+BLEU mean:0.0735294117647
+VideoID: 7 Path: XOAgUVVwKEA_8_20.avi.npy:a baby is eating 
+BLEU mean:0.313801279102
+VideoID: 8 Path: ufFT2BWh3BQ_0_8.avi.npy:a panda is laying down some 
+BLEU mean:0.0283291022622
+VideoID: 9 Path: 5YJaS2Eswg0_22_26.avi.npy:a man is riding on a road 
+BLEU mean:0.281212248342
+VideoID: 10 Path: lw7pTwpx0K0_38_48.avi.npy:a man is removing a paper box 
+BLEU mean:0.397148701753
+VideoID: 11 Path: UbmZAe5u5FI_132_141.avi.npy:a person is slicing a piece of meat 
+BLEU mean:0.262211112585
+VideoID: 12 Path: xCFCXzDUGjY_5_9.avi.npy:a man is making a trick in a race 
+BLEU mean:0.188691207379
+VideoID: 13 Path: He7Ge7Sogrk_47_70.avi.npy:a man is sitting on a large of a man on his hand 
+BLEU mean:0.159258441835
+VideoID: 14 Path: tJHUH9tpqPg_113_118.avi.npy:a woman is drinking a cup 
+BLEU mean:0.453060858505
+VideoID: 15 Path: n016q1w8Q30_2_11.avi.npy:a person is slicing an apple 
+BLEU mean:0.230323044075
+VideoID: 16 Path: RjpbFlOHFps_8_25.avi.npy:a girl is doing stunts on a half of a girl 
+BLEU mean:0.135234713559
+VideoID: 17 Path: 6JnGBs88sL0_4_10.avi.npy:a man is doing a trick on a 
+BLEU mean:0.250704139961
+VideoID: 18 Path: EpMuCrbxE8A_107_115.avi.npy:a man is performing a bite of a man with a pair of a man 
+BLEU mean:0.154166666667
+VideoID: 19 Path: HAjwXjwN9-A_16_24.avi.npy:two men are fighting 
+BLEU mean:0.119534424913
+VideoID: 20 Path: 4xVGpDmA4lE_23_33.avi.npy:a man is talking to a man 
+BLEU mean:0.261097680101
+VideoID: 21 Path: k5OKBX2e7xA_19_32.avi.npy:a man and a woman rides a motorbike in a sand 
+BLEU mean:0.198742365161
+VideoID: 22 Path: Jag7oTemldY_12_25.avi.npy:a man is talking to a man 
+BLEU mean:0.367818952696
+VideoID: 23 Path: 8MVo7fje_oE_125_130.avi.npy:a man is adding something to a plate 
+BLEU mean:0.352110684857
+VideoID: 24 Path: bqMmyY1ImkI_0_14.avi.npy:a little girl is spinning around on a plate 
+BLEU mean:0.1098811616
+VideoID: 25 Path: jTnrm338_KY_34_42.avi.npy:a man is cutting a large glass of food 
+BLEU mean:0.223662922798
+VideoID: 26 Path: UdcObAQ5OOM_15_30.avi.npy:a man is riding a on his back 
+BLEU mean:0.358383328031
+VideoID: 27 Path: 4PcL6-mjRNk_11_18.avi.npy:a man is putting a model in a circular sheet of the scene of it 
+BLEU mean:0.20473102261
+VideoID: 28 Path: 3qqEKTPxLNs_1_15.avi.npy:a baby is sitting on a baby 
+BLEU mean:0.427219823846
+VideoID: 29 Path: glrijRGnmc0_211_215.avi.npy:a man is cleaning a 
+BLEU mean:0.430908264588
+VideoID: 30 Path: q7pOFn8s4zc_263_273.avi.npy:a man is a man in a cricket 
+BLEU mean:0.225796442729
+VideoID: 31 Path: mtrCf667KDk_134_176.avi.npy:a man is breaking a piece of bread 
+BLEU mean:0.278382696275
+VideoID: 32 Path: 0lh_UWF9ZP4_62_69.avi.npy:a woman is adding flour to some ingredients 
+BLEU mean:0.29939401809
+VideoID: 33 Path: JntMAcTlOF0_50_70.avi.npy:a man is walking in the woods 
+BLEU mean:0.242741701335
+VideoID: 34 Path: 7NNg0_n-bS8_21_30.avi.npy:a man is singing and singing 
+BLEU mean:0.428193333785
+VideoID: 35 Path: IhwPQL9dFYc_124_129.avi.npy:a woman is cutting a woman 
+BLEU mean:0.390420602573
+VideoID: 36 Path: BAf3LXFUaGs_28_38.avi.npy:a man is playing the guitar 
+BLEU mean:0.491236063356
+VideoID: 37 Path: 6q1dX6thX3E_286_295.avi.npy:a man is talking to a woman 's hand 
+BLEU mean:0.392156862745
+VideoID: 38 Path: RZL9irxnhZ0_34_40.avi.npy:a man is putting a small pitcher of small pieces of garlic 
+BLEU mean:0.247895905648
+VideoID: 39 Path: WWf0Z6ak3Dg_5_15.avi.npy:a man is playing with a ball 
+BLEU mean:0.489919900025
+VideoID: 40 Path: PeUHy0A1GF0_114_121.avi.npy:a person is peeling a piece of meat 
+BLEU mean:0.254732689731
+VideoID: 41 Path: klteYv1Uv9A_27_33.avi.npy:a man is riding a motorcycle 
+BLEU mean:0.547170470641
+VideoID: 42 Path: e-j59PqJjSM_405_416.avi.npy:a man is adding something to a bowl 
+BLEU mean:0.413459218926
+VideoID: 43 Path: 778mkceE0UQ_40_46.avi.npy:two men are driving a car 
+BLEU mean:0.28929670591
+VideoID: 44 Path: 77iDIp40m9E_126_131.avi.npy:a man riding a scooter down the road 
+BLEU mean:0.340833015079
+VideoID: 45 Path: e-j59PqJjSM_50_98.avi.npy:a man is cutting an onion 
+BLEU mean:0.283637213668
+VideoID: 46 Path: Dgf0VHMEtNs_57_66.avi.npy:a man is a big of ice cream on a ice cream 
+BLEU mean:0.177083333333
+VideoID: 47 Path: f9Won2JpOEU_60_80.avi.npy:a man is playing with a cat 's mouth 
+BLEU mean:0.282974749381
+VideoID: 48 Path: dfOuTx66bJU_34_39.avi.npy:a woman is walking down the path 
+BLEU mean:0.317050884067
+VideoID: 49 Path: 04Gt01vatkk_248_265.avi.npy:a woman is making a piece of bread 
+BLEU mean:0.273311664508
+VideoID: 50 Path: rl1rVk_xIOs_1_16.avi.npy:two women are playing a 
+BLEU mean:0.147744727423
+Overall BLEU:0.28300951821
