@@ -14,7 +14,7 @@ embed_size = int(sys.argv[1])
 vocab_size = int(sys.argv[2])
 
 #path
-glove_path = "./glove/glove.6B." + sys.argv[1] + "d.txt"
+glove_path = "./gloves/glove.6B." + sys.argv[1] + "d.txt"
 train_feat_dir, train_label_dir, train_info_path = "./data/training/feat/", "./data/training/label/", "./data/training/info.csv"
 test_feat_dir, test_label_dir, test_info_path = "./data/testing/feat/", "./data/testing/label/", "./data/testing/info.csv"
 dic_dir = "./dic/"

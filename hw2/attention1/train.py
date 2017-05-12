@@ -93,7 +93,7 @@ def train():
         sys.stdout.write("\nEpoch: {0}, Loss: {1}, Time: {2}\n".format(epoch, track_dict["loss"], end_time - start_time))
         #save
         if np.mod(epoch, save_per_epoch) == 0:
-            print ("Epoch ", epoch, " is done. Saving the model...")
+            print "Epoch ", epoch, " is done. Saving the model..."
             if not os.path.exists(model_dir):
                 os.makedirs(model_dir)
             saver.save(session, model_dir, global_step=epoch)            
