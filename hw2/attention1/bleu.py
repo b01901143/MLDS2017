@@ -2,6 +2,7 @@ import math
 import operator
 import sys
 from functools import reduce
+
 def count_ngram(candidate, references, n):
     clipped_count = 0
     count = 0
@@ -86,14 +87,15 @@ def geometric_mean(precisions):
     return (reduce(operator.mul, precisions)) ** (1.0 / len(precisions))
 
 
-def BLEU():
+# Usage : BLEU_2(input_1,input_2),return score
+def BLEU_2(inp_1,inp_2):
 
     score = 0.  
     count = 0
     try:
-        s = sys.argv[1]
-        t =  sys.argv[2] 
-
+        s = inp_1
+        t = inp_2
+        
         count += 1
         candidate = [s.strip()]
         references = [[t.strip()]] 
@@ -101,10 +103,12 @@ def BLEU():
         pr, bp = count_ngram(candidate, references, 1)
         precisions.append(pr)
         score = geometric_mean(precisions) * bp
-        print ("BLEU SCORE: " + str(score/count))
+        f_score = score/count
+        #print "BLEU SCORE: " + str(f_score)
+        return f_score
     except:
         print ("Usage: python bleu_eval.py <candidate_sentence> <reference_sentence>")
 
 ### Usage: python bleu_eval.py candidate_sentence reference_sentence
 ### Ref : https://github.com/vikasnar/Bleu
-BLEU()
+#BLEU()

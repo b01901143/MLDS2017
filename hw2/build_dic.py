@@ -14,10 +14,11 @@ embed_size = int(sys.argv[1])
 vocab_size = int(sys.argv[2])
 
 #path
-glove_path = "./glove/glove.6B." + sys.argv[1] + "d.txt"
+glove_path = "./gloves/glove.6B." + sys.argv[1] + "d.txt"
 train_feat_dir, train_label_dir, train_info_path = "./data/training/feat/", "./data/training/label/", "./data/training/info.csv"
 test_feat_dir, test_label_dir, test_info_path = "./data/testing/feat/", "./data/testing/label/", "./data/testing/info.csv"
-word_dic_path, id_dic_path, init_bias_dic_path, embed_dic_path = "./dic/word_dic", "./dic/id_dic", "./dic/init_bias_dic", "./dic/embed_dic"
+dic_dir = "./dic/"
+word_dic_path, id_dic_path, init_bias_dic_path, embed_dic_path = dic_dir + "word_dic", dic_dir + "id_dic", dic_dir + "init_bias_dic", "./dic/embed_dic"
 
 #function
 def getInfo(info_path):
@@ -89,6 +90,8 @@ def buildDic():
         else :
             embed[i] = np.random.standard_normal(size=embed_size)
         print (key, ' ', i, 'map to :', ix)
+    if not os.path.exists(dic_dir):
+        os.mkdir(dic_dir)
     pickle.dump(word_id, open(word_dic_path,'wb'))
     pickle.dump(id_word, open(id_dic_path,'wb'))
     pickle.dump(init_bias_vector, open(init_bias_dic_path, 'wb'))
