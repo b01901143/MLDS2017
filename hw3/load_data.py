@@ -1,6 +1,6 @@
 import sys
 import csv
-import h5py
+import pickle
 import argparse
 import skipthoughts
 
@@ -8,7 +8,7 @@ import skipthoughts
 parser = argparse.ArgumentParser()
 parser.add_argument("--images_dir_path", type=str, help="for example: ./data/basic/images/")
 parser.add_argument("--text_file_path", type=str, help="for example: ./sample_training_text.txt")
-parser.add_argument("--text_image_file_path", type=str, help="for example: ./text_image.hdf5")
+parser.add_argument("--text_image_file_path", type=str, help="for example: ./text_image")
 args = parser.parse_args()
 
 #prepare image_list and caption_list
@@ -29,7 +29,5 @@ for i, (image, caption) in enumerate(zip(image_list, caption_list)):
 	sys.stdout.flush()
 
 #write
-text_image_file = h5py.File(args.text_image_file_path)
-for key in out_dict:
-	text_image_file.create_dataset(key, data=out_dict[key])
-text_image_file.close()
+with open(args.text_image_file_path, "wb") as text_image_file:
+	pickle.dump(out_dict, text_image_file, protocol=pickle.HIGHEST_PROTOCOL)
