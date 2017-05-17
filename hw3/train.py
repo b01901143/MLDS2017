@@ -1,76 +1,13 @@
 import os
-import pickle
 import random
-import scipy
-import scipy.misc
-import skimage
-import skimage.io
-import skimage.transform
-import model
-import numpy as np
 import tensorflow as tf
-
-image_size = 64
-caption_size = 4800
-z_dim = 100
-t_dim = 256
-gf_dim = 64
-df_dim = 64
-gfc_dim = 1024
-num_epoch = 600
-save_num_batch = 30
-restore_flag = None
-batch_size = 64
-learning_rate = 0.0002
-beta1 = 0.5
-
-save_dir = "./saves/"
-text_image_path = "./text_image"
-
-def convertDictToList(dict_file_path):
-	with open(dict_file_path, "rb") as dict_file:
-		dict_ = pickle.load(dict_file)
-	list_ = [ (key, value) for key, value in dict_.iteritems() ]
-	return list_
-
-def getImageArray(image_file_path):
-	image_array = skimage.io.imread(image_file_path)
-	resized_image_array = skimage.transform.resize(image_array, (image_size, image_size))
-	if random.random() > 0.5:
-		resized_image_array = np.fliplr(resized_image_array)
-	return resized_image_array.astype(np.float32)
-
-def getBatchData(current_batch):
-	real_images = np.zeros((batch_size, image_size, image_size, 3), dtype=np.float32)
-	captions = np.zeros((batch_size, caption_size), dtype=np.float32)
-	image_files = []
-	for i, (image_file_path, caption_array) in enumerate(current_batch):
-		real_images[i,:,:,:] = getImageArray(image_file_path)
-		captions[i,:] = caption_array.flatten()
-		image_files.append(image_file_path)
-	wrong_images = np.roll(real_images, 1, axis=0)
-	z_noise = np.asarray(np.random.uniform(-1, 1, [batch_size, z_dim]), dtype=np.float32)
-	return real_images, wrong_images, captions, z_noise, image_files
-
-def saveGenImage(save_dir, generated_images):
-	for i, arr in enumerate(generated_images):
-		generated_image = np.zeros((image_size, image_size, 3), dtype=np.uint8)
-		generated_image = arr
-		scipy.misc.imsave(save_dir + str(i) + ".jpg", generated_image)
+from parameter import *
+from utility import *
+import model
 
 def train():
 	text_image_list = convertDictToList(text_image_path)
-	model_options = {
-		'z_dim' : z_dim,
-		't_dim' : t_dim,
-		'batch_size' : batch_size,
-		'image_size' : image_size,
-		'gf_dim' : gf_dim,
-		'df_dim' : df_dim,
-		'gfc_dim' : gfc_dim,
-		'caption_vector_length' : caption_size
-	}
-	GAN = model.GAN(model_options)
+	GAN = model.GAN()
 	with tf.variable_scope("GAN"):
 		input_tensors, variables, loss, outputs, checks = GAN.build_model()
 	d_optimizer = tf.train.AdamOptimizer(learning_rate, beta1=beta1).minimize(loss['d_loss'], var_list=variables['d_vars'])
