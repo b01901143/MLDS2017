@@ -7,8 +7,8 @@ import skipthoughts
 #argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--images_dir_path", type=str, help="for example: ./data/basic/images/")
-parser.add_argument("--text_file_path", type=str, help="for example: ./sample_training_text.txt")
-parser.add_argument("--text_image_file_path", type=str, help="for example: ./text_image")
+parser.add_argument("--text_file_path", type=str, help="for example: ./info/sample_training_text.txt")
+parser.add_argument("--text_image_file_path", type=str, help="for example: ./info/text_image")
 args = parser.parse_args()
 
 #prepare image_list and caption_list

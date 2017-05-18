@@ -1,153 +1,231 @@
 import tensorflow as tf
-from parameter import *
 from function import *
 
 class GAN:
-	def __init__(self):
-		self.g_bn0 = batch_norm(name='g_bn0')
-		self.g_bn1 = batch_norm(name='g_bn1')
-		self.g_bn2 = batch_norm(name='g_bn2')
-		self.g_bn3 = batch_norm(name='g_bn3')
+	def __init__(self, image_size, caption_size, embedding_size, noise_size, g_channel_size, d_channel_size, batch_size):
+		self.image_size = image_size
+		self.caption_size = caption_size   
+		self.embedding_size = embedding_size
+		self.noise_size = noise_size
+		self.g_channel_size = g_channel_size
+		self.d_channel_size = d_channel_size
+		self.batch_size = batch_size
 
-		self.d_bn1 = batch_norm(name='d_bn1')
-		self.d_bn2 = batch_norm(name='d_bn2')
-		self.d_bn3 = batch_norm(name='d_bn3')
-		self.d_bn4 = batch_norm(name='d_bn4')
-
-
-	def build_model(self):
-		t_real_image = tf.placeholder('float32', [batch_size, image_size, image_size, 3 ], name = 'real_image')
-		t_wrong_image = tf.placeholder('float32', [batch_size, image_size, image_size, 3 ], name = 'wrong_image')
-		t_real_caption = tf.placeholder('float32', [batch_size, caption_size], name = 'real_caption_input')
-		t_z = tf.placeholder('float32', [batch_size, z_dim])
-
-		fake_image = self.generator(t_z, t_real_caption)
-		
-		disc_real_image, disc_real_image_logits   = self.discriminator(t_real_image, t_real_caption)
-		disc_wrong_image, disc_wrong_image_logits = self.discriminator(t_wrong_image, t_real_caption, reuse = True)
-		disc_fake_image, disc_fake_image_logits  = self.discriminator(fake_image, t_real_caption, reuse = True)
-		
-		g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_fake_image_logits, labels=tf.ones_like(disc_fake_image)))
-
-		d_loss1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_real_image_logits, labels=tf.ones_like(disc_real_image)))
-		d_loss2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_wrong_image_logits, labels=tf.zeros_like(disc_wrong_image)))
-		d_loss3 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=disc_fake_image_logits, labels=tf.zeros_like(disc_fake_image)))
-
-		d_loss = d_loss1 + d_loss2 + d_loss3
-
-		t_vars = tf.trainable_variables()
-		d_vars = [var for var in t_vars if 'd_' in var.name]
-		g_vars = [var for var in t_vars if 'g_' in var.name]
-
-		input_tensors = {
-			't_real_image' : t_real_image,
-			't_wrong_image' : t_wrong_image,
-			't_real_caption' : t_real_caption,
-			't_z' : t_z
+	def buildTrainModel(self):
+		#placeholder
+		t_real_image = tf.placeholder(dtype=tf.float32, shape=[self.batch_size, self.image_size, self.image_size, 3], name="real_image")
+		t_wrong_image = tf.placeholder(dtype=tf.float32, shape=[self.batch_size, self.image_size, self.image_size, 3], name="wrong_image")
+		t_caption = tf.placeholder(dtype=tf.float32, shape=[self.batch_size, self.caption_size], name="caption")
+		t_noise = tf.placeholder(dtype=tf.float32, shape=[self.batch_size, self.noise_size], name="noise")
+		#generator
+		t_fake_image = self.generator(t_noise, t_caption, reuse=False, is_training=True)
+		#discriminator
+		real_image_logits, real_image_labels = self.discriminator(t_real_image, t_caption, reuse=False, is_training=True)
+		wrong_image_logits, wrong_image_labels = self.discriminator(t_wrong_image, t_caption, reuse=True, is_training=True)
+		fake_image_logits, fake_image_labels = self.discriminator(t_fake_image, t_caption, reuse=True, is_training=True)		
+		#loss
+		t_g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=fake_image_logits, labels=tf.ones_like(fake_image_labels)))
+		d_loss_1 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=real_image_logits, labels=tf.ones_like(real_image_labels)))
+		d_loss_2 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=wrong_image_logits, labels=tf.zeros_like(wrong_image_labels)))
+		d_loss_3 = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=fake_image_logits, labels=tf.zeros_like(fake_image_labels)))
+		t_d_loss = d_loss_1 + d_loss_2 + d_loss_3
+		#trainable_variable
+		t_g_variable = [ variable for variable in tf.trainable_variables() if "g_" in variable.name ]
+		t_d_variable = [ variable for variable in tf.trainable_variables() if "d_" in variable.name ]
+		#return tensor
+		t_input_tensor = {
+			"real_image": t_real_image,
+			"wrong_image": t_wrong_image,
+			"caption": t_caption,
+			"noise": t_noise
 		}
-
-		variables = {
-			'd_vars' : d_vars,
-			'g_vars' : g_vars
+		t_output_tensor = {
+			"fake_image": t_fake_image
 		}
-
-		loss = {
-			'g_loss' : g_loss,
-			'd_loss' : d_loss
+		t_loss_tensor = {
+			"g_loss": t_g_loss,
+			"d_loss": t_d_loss
 		}
-
-		outputs = {
-			'generator' : fake_image
+		t_variable_tensor = {
+			"g_variable": t_g_variable,
+			"d_variable": t_d_variable
 		}
-
-		checks = {
-			'd_loss1': d_loss1,
-			'd_loss2': d_loss2,
-			'd_loss3' : d_loss3,
-			'disc_real_image_logits' : disc_real_image_logits,
-			'disc_wrong_image_logits' : disc_wrong_image,
-			'disc_fake_image_logits' : disc_fake_image_logits
+		check_tensor = {
+			"d_loss_1": d_loss_1,
+			"d_loss_2": d_loss_2,
+			"d_loss_3": d_loss_3,
+			"real_image_logits": real_image_logits,
+			"wrong_image_logits": wrong_image_logits,
+			"fake_image_logits": fake_image_logits
 		}
-		
-		return input_tensors, variables, loss, outputs, checks
+		return t_input_tensor, t_output_tensor, t_loss_tensor, t_variable_tensor, check_tensor
 
-	def build_generator(self):
-		t_real_caption = tf.placeholder('float32', [batch_size, caption_size], name = 'real_caption_input')
-		t_z = tf.placeholder('float32', [batch_size, z_dim])
-		fake_image = self.sampler(t_z, t_real_caption)
-		
-		input_tensors = {
-			't_real_caption' : t_real_caption,
-			't_z' : t_z
+	def buildTestModel(self):
+		#placeholder
+		t_caption = tf.placeholder(dtype=tf.float32, shape=[self.batch_size, self.caption_size], name="caption")
+		t_noise = tf.placeholder(dtype=tf.float32, shape=[self.batch_size, self.noise_size], name="noise")
+		#generator
+		t_fake_image = self.generator(t_noise, t_caption, reuse=False, training=False)
+		#return tensor
+		t_input_tensor = {
+			"caption": t_caption,
+			"noise": t_noise			
+		}	
+		t_output_tensor = {
+			"fake_image": t_fake_image
 		}
-		
-		outputs = {
-			'generator' : fake_image
-		}
+		return t_input_tensor, t_output_tensor
 
-		return input_tensors, outputs
-
-	# Sample Images for a text embedding
-	def sampler(self, t_z, t_text_embedding):
-		tf.get_variable_scope().reuse_variables()
-		
-		s = image_size
-		s2, s4, s8, s16 = int(s/2), int(s/4), int(s/8), int(s/16)
-		
-		reduced_text_embedding = leakyReLU( fullyConnectedLayer(t_text_embedding, t_dim, 'g_embedding') )
-		z_concat = tf.concat([t_z, reduced_text_embedding], 1)
-		z_ = fullyConnectedLayer(z_concat, gf_dim*8*s16*s16, 'g_h0_lin')
-		h0 = tf.reshape(z_, [-1, s16, s16, gf_dim * 8])
-		h0 = tf.nn.relu(self.g_bn0(h0, train = False))
-		h1 = transConvolutionLayer(h0, [5, 5, gf_dim*4, h0.get_shape()[-1]], [1, 2, 2, 1], [batch_size, s8, s8, gf_dim*4], name='g_h1')
-		h1 = tf.nn.relu(self.g_bn1(h1, train = False))
-		
-		h2 = transConvolutionLayer(h1, [5, 5, gf_dim*2, h1.get_shape()[-1]], [1, 2, 2, 1], [batch_size, s4, s4, gf_dim*2], name='g_h2')
-		h2 = tf.nn.relu(self.g_bn2(h2, train = False))
-		
-		h3 = transConvolutionLayer(h2, [5, 5, gf_dim*1, h2.get_shape()[-1]], [1, 2, 2, 1], [batch_size, s2, s2, gf_dim*1], name='g_h3')
-		h3 = tf.nn.relu(self.g_bn3(h3, train = False))
-		
-		h4 = transConvolutionLayer(h3, [5, 5, 3, h3.get_shape()[-1]], [1, 2, 2, 1], [batch_size, s, s, 3], name='g_h4')
-		
-		return (tf.tanh(h4)/2. + 0.5)
-
-	def generator(self, t_z, t_text_embedding):
-		
-		s = image_size
-		s2, s4, s8, s16 = int(s/2), int(s/4), int(s/8), int(s/16)
-		
-		reduced_text_embedding = leakyReLU( fullyConnectedLayer(t_text_embedding, t_dim, 'g_embedding') )
-		z_concat = tf.concat([t_z, reduced_text_embedding], 1)
-		z_ = fullyConnectedLayer(z_concat, gf_dim*8*s16*s16, 'g_h0_lin')
-		h0 = tf.reshape(z_, [-1, s16, s16, gf_dim * 8])
-		h0 = tf.nn.relu(self.g_bn0(h0))
-		
-		h1 = transConvolutionLayer(h0, [5, 5, gf_dim*4, h0.get_shape()[-1]], [1, 2, 2, 1], [batch_size, s8, s8, gf_dim*4], name='g_h1')
-		h1 = tf.nn.relu(self.g_bn1(h1))
-		
-		h2 = transConvolutionLayer(h1, [5, 5, gf_dim*2, h1.get_shape()[-1]], [1, 2, 2, 1], [batch_size, s4, s4, gf_dim*2], name='g_h2')
-		h2 = tf.nn.relu(self.g_bn2(h2))
-		
-		h3 = transConvolutionLayer(h2, [5, 5, gf_dim*1, h2.get_shape()[-1]], [1, 2, 2, 1], [batch_size, s2, s2, gf_dim*1], name='g_h3')
-		h3 = tf.nn.relu(self.g_bn3(h3))
-		
-		h4 = transConvolutionLayer(h3, [5, 5, 3, h3.get_shape()[-1]], [1, 2, 2, 1], [batch_size, s, s, 3], name='g_h4')
-		
-		return (tf.tanh(h4)/2. + 0.5)
-
-	def discriminator(self, image, t_text_embedding, reuse=False):
+	def generator(self, noise, caption, reuse=False, is_training=False):
 		if reuse:
 			tf.get_variable_scope().reuse_variables()
-		h0 = leakyReLU(convolutionLayer(image, [5, 5, image.get_shape()[-1], df_dim], [1, 2, 2, 1], name = 'd_h0_conv')) #32
-		h1 = leakyReLU( self.d_bn1(convolutionLayer(h0, [5, 5, h0.get_shape()[-1], df_dim*2], [1, 2, 2, 1], name = 'd_h1_conv'))) #16
-		h2 = leakyReLU( self.d_bn2(convolutionLayer(h1, [5, 5, h1.get_shape()[-1], df_dim*4], [1, 2, 2, 1], name = 'd_h2_conv'))) #8
-		h3 = leakyReLU( self.d_bn3(convolutionLayer(h2, [5, 5, h2.get_shape()[-1], df_dim*8], [1, 2, 2, 1], name = 'd_h3_conv'))) #4
-		reduced_text_embeddings = leakyReLU(fullyConnectedLayer(t_text_embedding, t_dim, 'd_embedding'))
-		reduced_text_embeddings = tf.expand_dims(reduced_text_embeddings,1)
-		reduced_text_embeddings = tf.expand_dims(reduced_text_embeddings,2)
-		tiled_embeddings = tf.tile(reduced_text_embeddings, [1,4,4,1], name='tiled_embeddings')	
-		h3_concat = tf.concat( [h3, tiled_embeddings], 3, name='h3_concat')
-		h3_new = leakyReLU( self.d_bn4(convolutionLayer(h3_concat, [1, 1, h3_concat.get_shape()[-1], df_dim*8], [1, 1, 1, 1], name = 'd_h3_conv_new'))) #4
-		h4 = fullyConnectedLayer(tf.reshape(h3_new, [batch_size, -1]), 1, 'd_h3_lin')
-		return tf.nn.sigmoid(h4), h4
+		#prepare size
+		image_size_16, image_size_8, image_size_4, image_size_2 = int(self.image_size / 16), int(self.image_size / 8), int(self.image_size / 4), int(self.image_size / 2)
+		g_channel_size_8, g_channel_size_4, g_channel_size_2 = self.g_channel_size * 8, self.g_channel_size * 4, self.g_channel_size * 2
+		#concat noise with caption
+		embed = fullyConnectedLayer(
+			caption,
+			output_dim=self.embedding_size,
+			name="g_embedding"
+		)
+		embed = tf.maximum(embed, 0.2 * embed)
+		embed_concat = tf.concat([noise, embed], 1)	
+		h_0 = fullyConnectedLayer(
+			embed_concat,
+			output_dim=image_size_16 * image_size_16 * g_channel_size_8,
+			name="g_fc_0"
+		)
+		h_0 = tf.reshape(h_0, [-1, image_size_16, image_size_16, g_channel_size_8])
+		h_0 = batchNormLayer(
+			h_0, 
+			is_training=is_training,
+			name="g_bn_0"	
+		)
+		h_0 = tf.nn.relu(h_0)
+		#up-sample
+		h_1 = transConvolutionLayer(
+			h_0,
+			filter_shape=[5, 5, g_channel_size_4, h_0.get_shape()[-1]],
+			stride_shape=[1, 2, 2, 1],
+			output_shape=[self.batch_size, image_size_8, image_size_8, g_channel_size_4],
+			name="g_tc_1"
+		)
+		h_1 = batchNormLayer(
+			h_1, 
+			is_training=is_training,
+			name="g_bn_1"	
+		)
+		h_1 = tf.nn.relu(h_1)
+		h_2 = transConvolutionLayer(
+			h_1,
+			filter_shape=[5, 5, g_channel_size_2, h_1.get_shape()[-1]],
+			stride_shape=[1, 2, 2, 1],
+			output_shape=[self.batch_size, image_size_4, image_size_4, g_channel_size_2],
+			name="g_tc_2"
+		)
+		h_2 = batchNormLayer(
+			h_2, 
+			is_training=is_training,
+			name="g_bn_2"	
+		)
+		h_2 = tf.nn.relu(h_2)
+		h_3 = transConvolutionLayer(
+			h_2,
+			filter_shape=[5, 5, self.g_channel_size, h_2.get_shape()[-1]], 
+			stride_shape=[1, 2, 2, 1], 
+			output_shape=[self.batch_size, image_size_2, image_size_2, self.g_channel_size], 
+			name="g_tc_3"
+		)
+		h_3 = batchNormLayer(
+			h_3, 
+			is_training=is_training,
+			name="g_bn_3"	
+		)
+		h_3 = tf.nn.relu(h_3)
+		h_4 = transConvolutionLayer(
+			h_3, 
+			filter_shape=[5, 5, 3, h_3.get_shape()[-1]], 
+			stride_shape=[1, 2, 2, 1], 
+			output_shape=[self.batch_size, self.image_size, self.image_size, 3], 
+			name="g_tc_4"
+		)
+		return (tf.tanh(h_4)/2. + 0.5)
+
+	def discriminator(self, image, caption, reuse=False, is_training=False):
+		if reuse:
+			tf.get_variable_scope().reuse_variables()
+		#prepare size
+		d_channel_size_2, d_channel_size_4, d_channel_size_8 = self.d_channel_size * 2, self.d_channel_size * 4, self.d_channel_size * 8
+		#down-sample
+		h_0 = convolutionLayer(
+			image, 
+			filter_shape=[5, 5, image.get_shape()[-1], self.d_channel_size], 
+			stride_shape=[1, 2, 2, 1], 
+			name="d_c_0"
+		)
+		h_0 = tf.maximum(h_0, 0.2 * h_0)
+		h_1 = convolutionLayer(
+			h_0, 
+			filter_shape=[5, 5, h_0.get_shape()[-1], d_channel_size_2], 
+			stride_shape=[1, 2, 2, 1], 
+			name="d_c_1"
+		)
+		h_1 = batchNormLayer(
+			h_1, 
+			is_training=is_training,
+			name="d_bn_1"	
+		)
+		h_1 = tf.maximum(h_1, 0.2 * h_1)
+		h_2 = convolutionLayer(
+			h_1, 
+			filter_shape=[5, 5, h_1.get_shape()[-1], d_channel_size_4], 
+			stride_shape=[1, 2, 2, 1],
+			name="d_c_2"
+		)
+		h_2 = batchNormLayer(
+			h_2, 
+			is_training=is_training,
+			name="d_bn_2"	
+		)
+		h_2 = tf.maximum(h_2, 0.2 * h_2)
+		h_3 = convolutionLayer(
+			h_2, 
+			filter_shape=[5, 5, h_2.get_shape()[-1], d_channel_size_8], 
+			stride_shape=[1, 2, 2, 1],
+			name="d_c_3"
+		)
+		h_3 = batchNormLayer(
+			h_3, 
+			is_training=is_training,
+			name="d_bn_3"	
+		)
+		h_3 = tf.maximum(h_3, 0.2 * h_3)
+		#concat h_3 with caption
+		embed = fullyConnectedLayer(
+			caption,
+			output_dim=self.embedding_size,
+			name="d_embedding"
+		)
+		embed = tf.maximum(embed, 0.2 * embed)
+		embed = tf.expand_dims(embed, 1)
+		embed = tf.expand_dims(embed, 2)
+		tile_embed = tf.tile(embed, [1, 4, 4, 1])	
+		concat_embed = tf.concat([h_3, tile_embed], 3)
+		h_4 = convolutionLayer(
+			concat_embed,
+			filter_shape=[1, 1, concat_embed.get_shape()[-1], d_channel_size_8],
+			stride_shape=[1, 1, 1, 1],
+			name="d_c_4"
+		)
+		h_4 = batchNormLayer(
+			h_4, 
+			is_training=is_training,
+			name="d_bn_4"	
+		)
+		h_4 = tf.maximum(h_4, 0.2 * h_4)
+		h_5 = fullyConnectedLayer(
+			tf.reshape(h_4, [self.batch_size, -1]),
+			output_dim=1,
+			name="d_fc_5"
+		)
+		return h_5, tf.nn.sigmoid(h_5)

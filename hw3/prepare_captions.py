@@ -4,7 +4,7 @@ import argparse
 #argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--infile_path", type=str, help="for example: ./data/basic/tags.csv")
-parser.add_argument("--outfile_path", type=str, help="for example: ./sample_training_text.txt")
+parser.add_argument("--outfile_path", type=str, help="for example: ./info/sample_training_text.txt")
 parser.add_argument("--feature_type", type=str, help="for example: \"all\" or \"hair, eyes\"")
 args = parser.parse_args()
 
