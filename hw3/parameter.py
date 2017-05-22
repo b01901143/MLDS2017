@@ -18,10 +18,10 @@ num_epoch = 600
 save_num_batch = 50
 
 #path
-training_sample_text_path = "./info/sample_training_text.txt"
-training_text_image_path = "./info/training_text_image"
-testing_sample_text_path = "./info/sample_testing_text.txt"
-testing_text_image_path = "./info/testing_text_image"
+sample_training_text_path = "./info/sample_training_text.txt"
+sample_training_info_path = "./info/sample_training_info"
+sample_testing_text_path = "./info/sample_testing_text.txt"
+sample_testing_info_path = "./info/sample_testing_info"
 model_dir = "./models/" + "_".join((
 		"image_size", str(image_size),
 		"caption_size", str(caption_size),
@@ -33,7 +33,7 @@ model_dir = "./models/" + "_".join((
 		"learning_rate", str(learning_rate),
 		"beta1", str(beta1)
     )) + "/"
-save_dir = "./saves/" + "_".join((
+result_training_dir = "./results/training/" + "_".join((
 		"image_size", str(image_size),
 		"caption_size", str(caption_size),
 		"embedding_size", str(embedding_size),
@@ -44,7 +44,7 @@ save_dir = "./saves/" + "_".join((
 		"learning_rate", str(learning_rate),
 		"beta1", str(beta1)
     )) + "/"
-sample_dir = "./samples/" + "_".join((
+result_testing_dir = "./results/testing/" + "_".join((
 		"image_size", str(image_size),
 		"caption_size", str(caption_size),
 		"embedding_size", str(embedding_size),
@@ -55,5 +55,5 @@ sample_dir = "./samples/" + "_".join((
 		"learning_rate", str(learning_rate),
 		"beta1", str(beta1)
     )) + "/"
-training_save_caption_path = save_dir + "caption.txt" 
-testing_save_caption_path = sample_dir + "caption.txt"
+result_training_caption_path = result_training_dir + "caption.txt" 
+result_testing_caption_path = result_testing_dir + "caption.txt"

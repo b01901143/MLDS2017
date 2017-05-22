@@ -5,8 +5,8 @@ from model import *
 
 def generate():
 	#get text_image info
-	testing_sample_text_dict = readSampleText(testing_sample_text_path)
-	testing_text_image_list = readTextToImage(testing_text_image_path)
+	sample_testing_text_dict = readSampleText(sample_testing_text_path)
+	sample_testing_info_list = readSampleInfo(sample_testing_info_path)
 	#model
 	model = GAN(
 		image_size=image_size,
@@ -24,9 +24,12 @@ def generate():
 	session = tf.InteractiveSession()
 	saver = tf.train.Saver()
 	saver.restore(session, model_dir + "-" + str(restore_version))
-	for batch in range(len(testing_text_image_list) // 1):
-		current_infer = testing_text_image_list[batch : (batch+1) * 1]
-		caption, noise, image_file = getInferData(current_infer)
+	#makedirs
+	if not os.path.exists(result_testing_dir):
+		os.makedirs(result_testing_dir)
+	for batch in range(len(sample_testing_info_list) // 1):
+		current_infer = sample_testing_info_list[batch : (batch+1) * 1]
+		caption, noise, image_file = getTestData(current_infer)
 		feed_dict = {
 			input_tensor['caption']: caption,
 			input_tensor['noise']: noise
@@ -35,11 +38,9 @@ def generate():
 			"fake_image": output_tensor["fake_image"]
 		}
 		g_track_dict = session.run(g_fetch_dict, feed_dict=feed_dict)
-		if not os.path.exists(sample_dir):
-			os.makedirs(sample_dir)
 		sys.stdout.write("\rBatchID: {0}, Saving Image...".format(batch))
 		sys.stdout.flush()
-		sampleImage(sample_dir, g_track_dict["fake_image"], batch)		
+		saveImageCaption(result_testing_dir, result_testing_caption_path, sample_testing_text_dict, g_track_dict["fake_image"], image_file)		
 
 if __name__ == '__main__':
 	generate()
