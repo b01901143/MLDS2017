@@ -42,8 +42,8 @@ def train():
 	for epoch in range(num_epoch):
 		random.shuffle(sample_training_info_list)
 		for batch in range(len(sample_training_info_list) // batch_size):
-			current_batch = sample_training_info_list[batch * batch_size : (batch+1) * batch_size]
-			real_image, wrong_image, caption, noise, image_file = getTrainData(current_batch)
+			current_train_data = sample_training_info_list[batch * batch_size : (batch+1) * batch_size]
+			real_image, wrong_image, caption, noise, image_file = getTrainData(current_train_data)
 			feed_dict = {
 				input_tensor['real_image']: real_image,
 				input_tensor['wrong_image']: wrong_image,
@@ -69,6 +69,9 @@ def train():
 			sys.stdout.write("\rBatchID: {0}, G losses: {1}, D losses: {2}".format(batch, g_track_dict["g_loss"], d_track_dict["d_loss"]))
 			sys.stdout.flush()
 			if (batch % save_num_batch) == 0:
+				for f in os.listdir(result_training_dir):
+					file_path = os.path.join(result_training_dir, f)
+					os.unlink(file_path)
 				saveImageCaption(result_training_dir, result_training_caption_path, sample_training_text_dict, g_track_dict["fake_image"], image_file)	
 		sys.stdout.write("\nEpochID: {0}, Saving Model...\n".format(epoch))
 		saver.save(session, model_dir, global_step=epoch)

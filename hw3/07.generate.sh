@@ -1,6 +1,6 @@
 #!/bin/bash
-echo "Testing model..."
+echo "Generating model..."
 
-python test.py
+python generate.py
 
-echo "Finish testing model!!"
+echo "Finish generating model!!"
