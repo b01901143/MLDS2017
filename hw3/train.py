@@ -29,6 +29,7 @@ def train():
 	#session and saver
 	session = tf.InteractiveSession()
 	saver = tf.train.Saver()
+	saver_50=tf.train.Saver()
 	if restore_flag:
 		saver.restore(session, model_dir + "-" + str(restore_version))
 	else:
@@ -75,6 +76,7 @@ def train():
 				saveImageCaption(result_training_dir, result_training_caption_path, sample_training_text_dict, g_track_dict["fake_image"], image_file)	
 		sys.stdout.write("\nEpochID: {0}, Saving Model...\n".format(epoch))
 		saver.save(session, model_dir, global_step=epoch)
-
+		if (batch % 50) == 0 :
+			saver_50.save(session, model_dir, global_step=epoch)
 if __name__ == '__main__':
 	train()

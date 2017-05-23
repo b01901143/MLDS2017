@@ -47,6 +47,6 @@ def generate():
 			sys.stdout.flush()
 			saveImageCaption(result_testing_dir, result_testing_caption_path, sample_testing_text_dict, g_track_dict["fake_image"], image_file)		
 			id_ = image_file[0].split("/")[-1].split(".")[0]
-			scipy.misc.imsave(sample_dir + str()+str(i) + ".jpg", saved_image)
+			scipy.misc.imsave(sample_dir + str(id_)+'_'+str(i) + ".jpg", np.array(g_track_dict["fake_image"][0]))
 if __name__ == '__main__':
 	generate()

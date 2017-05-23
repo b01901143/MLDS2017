@@ -12,9 +12,9 @@ learning_rate = 0.0002
 beta1 = 0.5
 
 #train
-restore_flag = True
-restore_version = 599
-num_epoch = 600
+restore_flag = False
+restore_version = 358
+num_epoch = 300
 save_num_batch = 50
 
 #path
