@@ -65,7 +65,7 @@ class GAN:
 		t_caption = tf.placeholder(dtype=tf.float32, shape=[self.batch_size, self.caption_size], name="caption")
 		t_noise = tf.placeholder(dtype=tf.float32, shape=[self.batch_size, self.noise_size], name="noise")
 		#generator
-		t_fake_image = self.generator(t_noise, t_caption, reuse=False, training=False)
+		t_fake_image = self.generator(t_noise, t_caption, reuse=False, is_training=False)
 		#return tensor
 		t_input_tensor = {
 			"caption": t_caption,
