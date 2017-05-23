@@ -28,8 +28,8 @@ def generate():
 	if not os.path.exists(result_testing_dir):
 		os.makedirs(result_testing_dir)
 	for batch in range(len(sample_testing_info_list) // 1):
-		current_infer = sample_testing_info_list[batch : (batch+1) * 1]
-		caption, noise, image_file = getTestData(current_infer)
+		current_test_data = sample_testing_info_list[batch : (batch+1) * 1]
+		caption, noise, image_file = getTestData(current_test_data)
 		feed_dict = {
 			input_tensor['caption']: caption,
 			input_tensor['noise']: noise
