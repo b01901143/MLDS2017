@@ -5,7 +5,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--infile_path", type=str, help="for example: ./data/basic/tags.csv")
 parser.add_argument("--outfile_path", type=str, help="for example: ./info/sample_training_text.txt")
-parser.add_argument("--feature_type", type=str, help="for example: \"all\" or \"hair, eyes\"")
+parser.add_argument("--feature_type", type=str, help="for example: \"all\" or \"hair,eyes\"")
 args = parser.parse_args()
 
 #read
@@ -20,7 +20,7 @@ with open(args.infile_path, "rb") as infile:
 		if(args.feature_type == "all"):
 			caption_list.append(" ".join([ t[0] for t in temp_sorted_tuple_list ]))
 		else:
-			caption_list.append(" ".join([ t[0] for key_word in args.feature_type.split(" ") for t in temp_sorted_tuple_list if key_word in t[0] ]))
+			caption_list.append(" ".join([ t[0] for key_word in args.feature_type.split(",") for t in temp_sorted_tuple_list if key_word in t[0] ]))
 
 with open(args.outfile_path, "wb") as outfile:
 	writer = csv.writer(outfile)
