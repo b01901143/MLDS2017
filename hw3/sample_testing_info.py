@@ -20,14 +20,20 @@ with open(args.text_file_path, "rb") as text_file:
 		caption_list.append(row[1])
 
 #prepare out_dict
-out_dict = {}
+out_list = []
 model = skipthoughts.load_model()
 encoder = skipthoughts.Encoder(model)
 for i, (image, caption) in enumerate(zip(image_list, caption_list)):
-	out_dict[args.image_dir + image + ".jpg"] = encoder.encode([caption], verbose=False)
+	out_list.append( ( 
+			image,
+			args.image_dir + image + ".jpg",
+			caption, 
+			encoder.encode([caption], verbose=False),
+		) 
+	)
 	sys.stdout.write("\rNow is at partition: {0: >8} / {1}".format(i + 1, len(image_list)))
 	sys.stdout.flush()
 
 #write
 with open(args.info_file_path, "wb") as info_file:
-	pickle.dump(out_dict, info_file, protocol=pickle.HIGHEST_PROTOCOL)
+	pickle.dump(out_list, info_file, protocol=pickle.HIGHEST_PROTOCOL)
