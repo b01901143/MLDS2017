@@ -46,11 +46,11 @@ def getTestData(test_data):
 	for i, (image_file_path, caption_array) in enumerate(test_data):
 		caption[i,:] = caption_array.flatten()
 		image_file.append(image_file_path)
-	noise = np.asarray(np.random.uniform(-1, 1, [1, noise_size]), dtype=np.float32)
+	noise = np.asarray(np.random.uniform(-7, 7, [1, noise_size]), dtype=np.float32)
 	return caption, noise, image_file
 
 def saveImageCaption(result_dir, result_caption_path, sample_training_text_dict, fake_image, image_file):
-	with open(result_training_caption_path, "wb") as result_training_caption_file:
+	with open(result_caption_path, "wb") as result_training_caption_file:
 		writer = csv.writer(result_training_caption_file)	
 		list_ = []
 		for i, (image, file) in enumerate(zip(fake_image, image_file)):
