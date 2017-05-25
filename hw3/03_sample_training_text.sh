@@ -8,7 +8,7 @@ fi
 
 infile_path="./data/basic/tags.csv"
 outfile_path="./$INFO_DIR/sample_training_text.txt"
-feature_type="blue hair,pink hair"
+feature_type="hair,eyes"
 
 python sample_training_text.py --infile_path "$infile_path" --outfile_path "$outfile_path" --feature_type "$feature_type"
 
