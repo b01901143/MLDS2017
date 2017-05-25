@@ -32,7 +32,7 @@ def shuffleData(sample_training_text_dict, sample_training_info_list):
 	return_list = []
 	for image_file_path, text, caption_array in merge_list:
 		for num in range(len(fake_training_info_list)):
-			if(sample_training_text_dict[ fake_training_info_list[num][0] ] == sample_training_text_dict[ image_file_path.split("/")[-1].split(".")[0] ])
+			if(sample_training_text_dict[ fake_training_info_list[num][0] ] == sample_training_text_dict[ image_file_path.split("/")[-1].split(".")[0] ]):
 				continue
 			else:
 				return_list.append(image_file_path, text, caption_array, fake_training_info_list[num][1])
