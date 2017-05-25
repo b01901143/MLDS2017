@@ -13,14 +13,14 @@ beta1 = 0.5
 
 #train
 restore_flag = False
-restore_version = 358
-num_epoch = 300
+restore_version = 595
+num_epoch = 600
 save_num_batch = 50
+save_num_epoch = 10
+max_to_keep = 100
 
 #path
-sample_training_text_path = "./info/sample_training_text.txt"
 sample_training_info_path = "./info/sample_training_info"
-sample_testing_text_path = "./info/sample_testing_text.txt"
 sample_testing_info_path = "./info/sample_testing_info"
 model_dir = "./models/" + "_".join((
 		"image_size", str(image_size),
@@ -55,5 +55,6 @@ result_testing_dir = "./results/testing/" + "_".join((
 		"learning_rate", str(learning_rate),
 		"beta1", str(beta1)
     )) + "/"
+sample_dir = "./samples/"
 result_training_caption_path = result_training_dir + "caption.txt" 
 result_testing_caption_path = result_testing_dir + "caption.txt"

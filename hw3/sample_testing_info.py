@@ -6,7 +6,7 @@ import skipthoughts
 
 #argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("--image_dir", type=str, help="for example: ./results/testing/")
+parser.add_argument("--image_dir", type=str, help="for example: ./samples/")
 parser.add_argument("--text_file_path", type=str, help="for example: ./info/sample_testing_text.txt")
 parser.add_argument("--info_file_path", type=str, help="for example: ./info/sample_testing_info")
 args = parser.parse_args()

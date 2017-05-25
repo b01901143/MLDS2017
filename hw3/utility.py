@@ -9,36 +9,10 @@ import skimage.transform
 import numpy as np
 from parameter import *
 
-def readSampleText(file_path):
-	with open(file_path, "rb") as file:
-		reader = csv.reader(file)
-		dict_ = { row[0]: row[1] for row in reader }
-		return dict_
-
 def readSampleInfo(file_path):
 	with open(file_path, "rb") as file:
-		dict_ = pickle.load(file)
-	list_ = [ (key, value) for key, value in dict_.iteritems() ]
-	return list_
-
-def shuffleData(sample_training_text_dict, sample_training_info_list):
-	merge_list = [ (
-			image_file_path,
-			sample_training_text_dict[ image_file_path.split("/")[-1].split(".")[0] ], 
-			caption_array
-		) for image_file_path, caption_array in sample_training_info_list 
-	]
-	fake_training_info_list = sample_training_info_list
-	return_list = []
-	for image_file_path, text, caption_array in merge_list:
-		for num in range(len(fake_training_info_list)):
-			if(sample_training_text_dict[ fake_training_info_list[num][0] ] == sample_training_text_dict[ image_file_path.split("/")[-1].split(".")[0] ]):
-				continue
-			else:
-				return_list.append(image_file_path, text, caption_array, fake_training_info_list[num][1])
-				fake_training_info_list.pop(num)
-				break
-	return return_list
+		list_ = pickle.load(file)
+		return list_
 
 def getImageArray(image_file_path):
 	image_array = skimage.io.imread(image_file_path)
@@ -51,10 +25,10 @@ def getTrainData(train_data):
 	real_image = np.zeros((batch_size, image_size, image_size, 3), dtype=np.float32)
 	caption = np.zeros((batch_size, caption_size), dtype=np.float32)
 	image_file = []
-	for i, (image_file_path, caption_array) in enumerate(train_data):
-		real_image[i,:,:,:] = getImageArray(image_file_path)
-		caption[i,:] = caption_array.flatten()
-		image_file.append(image_file_path)
+	for i, sample_data in enumerate(train_data):
+		real_image[i,:,:,:] = getImageArray(sample_data[1])
+		caption[i,:] = sample_data[3].flatten()
+		image_file.append(sample_data[1])
 	wrong_image = np.roll(real_image, 1, axis=0)
 	noise = np.asarray(np.random.uniform(-1, 1, [batch_size, noise_size]), dtype=np.float32)
 	return real_image, wrong_image, caption, noise, image_file
@@ -62,23 +36,8 @@ def getTrainData(train_data):
 def getTestData(test_data):
 	caption = np.zeros((1, caption_size), dtype=np.float32)
 	image_file = []
-	for i, (image_file_path, caption_array) in enumerate(test_data):
-		caption[i,:] = caption_array.flatten()
-		image_file.append(image_file_path)
-	noise = np.asarray(np.random.uniform(-7, 7, [1, noise_size]), dtype=np.float32)
+	for i, sample_data in enumerate(test_data):
+		caption[i,:] = sample_data[3].flatten()
+		image_file.append(sample_data[1])
+	noise = np.asarray(np.random.uniform(-1, 1, [1, noise_size]), dtype=np.float32)
 	return caption, noise, image_file
-
-def saveImageCaption(result_dir, result_caption_path, sample_training_text_dict, fake_image, image_file):
-	with open(result_caption_path, "wb") as result_training_caption_file:
-		writer = csv.writer(result_training_caption_file)	
-		list_ = []
-		for i, (image, file) in enumerate(zip(fake_image, image_file)):
-			saved_image = np.zeros((image_size, image_size, 3), dtype=np.uint8)
-			saved_image = image
-			id_ = file.split("/")[-1].split(".")[0]
-			caption = sample_training_text_dict[id_]
-			list_.append((int(id_), (caption, saved_image)))
-		sorted(list_, key=lambda x: list_[0])
-		for id_, (caption, saved_image) in list_:
-			scipy.misc.imsave(result_dir + str(id_) + ".jpg", saved_image)
-			writer.writerow([id_, caption])

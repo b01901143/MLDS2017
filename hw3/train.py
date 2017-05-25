@@ -8,7 +8,6 @@ from model import *
 
 def train():
 	#get text_image info
-	sample_training_text_dict = readSampleText(sample_training_text_path)
 	sample_training_info_list = readSampleInfo(sample_training_info_path)
 	#model
 	model = GAN(
@@ -29,7 +28,6 @@ def train():
 	#session and saver
 	session = tf.InteractiveSession()
 	saver = tf.train.Saver()
-	saver_50=tf.train.Saver()
 	if restore_flag:
 		saver.restore(session, model_dir + "-" + str(restore_version))
 	else:
@@ -46,10 +44,10 @@ def train():
 			current_train_data = sample_training_info_list[batch * batch_size : (batch+1) * batch_size]
 			real_image, wrong_image, caption, noise, image_file = getTrainData(current_train_data)
 			feed_dict = {
-				input_tensor['real_image']: real_image,
-				input_tensor['wrong_image']: wrong_image,
-				input_tensor['caption']: caption,
-				input_tensor['noise']: noise
+				input_tensor["real_image"]: real_image,
+				input_tensor["wrong_image"]: wrong_image,
+				input_tensor["caption"]: caption,
+				input_tensor["noise"]: noise
 			}			
 			g_fetch_dict = {
 				"g_optimizer": g_optimizer,
@@ -59,10 +57,10 @@ def train():
 			d_fetch_dict = {
 				"d_optimizer": d_optimizer,
 				"d_loss": loss_tensor["d_loss"],
-				"fake_image": output_tensor['fake_image'],
-				"d_loss_1": check_tensor['d_loss_1'],
-				"d_loss_2": check_tensor['d_loss_2'],
-				"d_loss_3": check_tensor['d_loss_3']
+				"fake_image": output_tensor["fake_image"],
+				"d_loss_1": check_tensor["d_loss_1"],
+				"d_loss_2": check_tensor["d_loss_2"],
+				"d_loss_3": check_tensor["d_loss_3"]
 			}
 			d_track_dict = session.run(d_fetch_dict, feed_dict=feed_dict)
 			g_track_dict = session.run(g_fetch_dict, feed_dict=feed_dict)
@@ -73,10 +71,23 @@ def train():
 				for f in os.listdir(result_training_dir):
 					file_path = os.path.join(result_training_dir, f)
 					os.unlink(file_path)
-				saveImageCaption(result_training_dir, result_training_caption_path, sample_training_text_dict, g_track_dict["fake_image"], image_file)	
+				with open(result_training_caption_path, "wb") as result_training_caption_file:
+					writer = csv.writer(result_training_caption_file)	
+					list_ = []
+					for i, (image, train_data) in enumerate(zip(g_track_dict["fake_image"], current_train_data)):
+						saved_image = np.zeros((image_size, image_size, 3), dtype=np.uint8)
+						saved_image = image
+						id_ = train_data[0]
+						caption = train_data[2]
+						list_.append((int(id_), (caption, saved_image)))
+					sorted(list_, key=lambda x: list_[0])
+					for id_, (caption, saved_image) in list_:
+						scipy.misc.imsave(result_training_dir + str(id_) + ".jpg", saved_image)
+						writer.writerow([id_, caption])	
 		sys.stdout.write("\nEpochID: {0}, Saving Model...\n".format(epoch))
 		saver.save(session, model_dir, global_step=epoch)
-		if (batch % 50) == 0 :
-			saver_50.save(session, model_dir, global_step=epoch)
+		if (epoch % save_num_epoch) == 0 :
+			saver.save(session, model_dir, global_step=epoch)
+
 if __name__ == '__main__':
 	train()
