@@ -1,4 +1,4 @@
-#text to image: Anime
+# text to image: Anime
 
 usage : sh run.sh 
 
