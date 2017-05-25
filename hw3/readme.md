@@ -1,6 +1,6 @@
 # text to image: Anime
 
-usage : sh run.sh <testing text path> 
+usage : sh run.sh <testing_text_path> 
 
 requriments:
 * skip thought
