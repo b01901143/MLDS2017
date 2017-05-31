@@ -2,9 +2,9 @@ EN_WHITELIST = '0123456789abcdefghijklmnopqrstuvwxyz ' # space is included in wh
 EN_BLACKLIST = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\''
 
 limit = {
-        'maxq' : 25,
+        'maxq' : 20,
         'minq' : 2,
-        'maxa' : 25,
+        'maxa' : 20,
         'mina' : 2
         }
 
