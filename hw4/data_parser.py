@@ -9,7 +9,7 @@ limit = {
         }
 
 UNK = '<unk>'
-VOCAB_SIZE = 8000
+VOCAB_SIZE = 8000 - 4
 
 
 import random
@@ -169,7 +169,7 @@ def index_(tokenized_sentences, vocab_size):
     # get vocabulary of 'vocab_size' most used words
     vocab = freq_dist.most_common(vocab_size)
     # index2word
-    index2word = ['_'] + [UNK] + [ x[0] for x in vocab ]
+    index2word = ['<start>'] + ['<pad>'] + ['<end>'] + [UNK] + [ x[0] for x in vocab ]
     # word2index
     word2index = dict([(w,i) for i,w in enumerate(index2word)] )
     return index2word, word2index, freq_dist
@@ -287,6 +287,7 @@ def process_data():
     # indexing -> idx2w, w2idx 
     print('\n >> Index words')
     idx2w, w2idx, freq_dist = index_( qtokenized + atokenized, vocab_size=VOCAB_SIZE)
+
     
     # filter out sentences with too many unknowns
     print('\n >> Filter Unknowns')
