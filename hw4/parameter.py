@@ -27,7 +27,7 @@ positive_file = 'data/real_data.txt'
 negative_file = 'data/generator_sample.txt'
 eval_file = 'data/eval_file.txt'
 generated_num = 10000
-vocab_size = 100000
+vocab_size = 80000
 #train
 restore_flag = False
 num_epoch = 600

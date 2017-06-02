@@ -9,7 +9,7 @@ limit = {
         }
 
 UNK = '<unk>'
-VOCAB_SIZE = 100000 - 3
+VOCAB_SIZE = 80000 - 4
 
 
 import random
@@ -144,7 +144,7 @@ def filter_data(qseq, aseq):
 
     for i in range(raw_data_len):
         qlen, alen = len(qseq[i].split(' ')), len(aseq[i].split(' '))
-        if qlen >= limit['minq'] and qlen <= limit['maxq']:
+        if qlen >= limit['minq'] and qlen <= limit['maxq']-1: #!!!
             if alen >= limit['mina'] and alen <= limit['maxa']:
                 filtered_q.append(qseq[i])
                 filtered_a.append(aseq[i])
@@ -169,7 +169,7 @@ def index_(tokenized_sentences, vocab_size):
     # get vocabulary of 'vocab_size' most used words
     vocab = freq_dist.most_common(vocab_size)
     # index2word
-    index2word = ['<pad>'] + ['<start>'] + [UNK] + [ x[0] for x in vocab ]
+    index2word = ['<pad>'] + ['<start>'] + ['<eoq>'] + [UNK] + [ x[0] for x in vocab ]
     # word2index
     word2index = dict([(w,i) for i,w in enumerate(index2word)] )
     return index2word, word2index, freq_dist
@@ -227,6 +227,9 @@ def zero_pad(qtokenized, atokenized, w2idx):
         #print(len(idx_a[i]), len(a_indices))
         idx_q[i] = np.array(q_indices)
         idx_a[i] = np.array(a_indices)
+
+        # pad question, with last word set as '<eoq>'
+        idx_q[i][-1] = w2idx['<eoq>']
 
     return idx_q, idx_a
 
@@ -316,9 +319,10 @@ def process_data():
         pickle.dump(metadata, f)
 
     # count of unknowns
-    unk_count = (idx_q == 2).sum() + (idx_a == 2).sum()
+    unk_count = (idx_q == 3).sum() + (idx_a == 3).sum()
     # count of words
-    word_count = (idx_q > 2).sum() + (idx_a > 2).sum()
+    word_count = (idx_q > 3).sum() + (idx_a > 3).sum()
+
 
     print('% unknown : {0}'.format(100 * (float(unk_count)/word_count)))
     print('Dataset count : ' + str(idx_q.shape[0]))
