@@ -15,7 +15,7 @@ from utility import *
 def generate():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--model_name", type=str, help="for example: seqGan1")
-	parser.add_argument("--restore_version", type=str, help="for example: 300 ")
+	parser.add_argument("--restore_version", type=str, help="for example: GAN-300 ")
 	parser.add_argument("--model_type", type=str,default='SeqGAN' , help=" [S2S,RL,BEST] appended to output file name")
 	parser.add_argument("--input_file", type=str, help="for example: ./data/testing_question.txt")
 	parser.add_argument("--output_file",type=str, help="for example: ./data/testing_answer.txt")
@@ -25,9 +25,10 @@ def generate():
 
 	
 	#makedirs
-
-	if not os.path.exists(sample_dir+model_name):
-		os.makedirs(sample_dir+model_name)
+	model_path  = model_dir+model_name
+	sample_path = sample_dir+model_name
+	if not os.path.exists(sample_path):
+		os.makedirs(sample_path)
 	random.seed(SEED)
 	np.random.seed(SEED)
 	assert START_TOKEN == 0
@@ -36,7 +37,7 @@ def generate():
 	#session and saver
 	session = tf.InteractiveSession()
 	saver = tf.train.Saver()
-	saver.restore(session, model_dir +model_name + "/-" + restore_version)
+	saver.restore(session, model_path + '/' + restore_version)
     
   
 	samples = generator.generate(sess)

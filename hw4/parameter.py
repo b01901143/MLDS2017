@@ -33,3 +33,6 @@ num_epoch = 600
 save_num_batch = 50
 max_to_keep = 100
 
+# path
+model_dir = './data/model/'
+sample_dir= './data/sample/'

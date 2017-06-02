@@ -10,11 +10,10 @@ from rollout import ROLLOUT
 from utility import *
 
 
-model_name="ver1"
 def train():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--model_name", type=str, help="for example: seqGan1")
-	parser.add_argument("--restore_version", type=str, help="for example: 300 ")
+	parser.add_argument("--restore_version", type=str, help="for example: GAN-300 ")
 	parser.add_argument("--input_file", type=str, help="for example: ./data/training_question.txt")
 	parser.add_argument("--output_file",type=str, help="for example: ./data/training_answer.txt")
 	args = parser.parse_args()
@@ -26,11 +25,12 @@ def train():
 
 	
 	#makedirs
-	
-	if not os.path.exists(model_dir+model_name):
-		os.makedirs(model_dir+model_name)
-	if not os.path.exists(sample_dir+model_name):
-		os.makedirs(sample_dir+model_name)
+	model_path = model_dir+model_name
+	sample_path= sample_dir+model_name
+	if not os.path.exists(model_path):
+		os.makedirs(model_path)
+	if not os.path.exists(sample_path):
+		os.makedirs(sample_path)
 	random.seed(SEED)
 	np.random.seed(SEED)
 	assert START_TOKEN == 0
@@ -45,12 +45,40 @@ def train():
 	session = tf.InteractiveSession()
 	saver = tf.train.Saver()
 	if restore_flag:
-		saver.restore(session, model_dir +model_name + "/-" + restore_version)
+		saver.restore(session, model_path + '/' + restore_version)
 	else:
 		session.run(tf.global_variables_initializer())
 	
-    
-
+    #  pre-train generator
+	# print 'Start pre-training...'
+    # log.write('pre-training...\n')
+    # for epoch in xrange(PRE_EPOCH_NUM):
+    #     loss = pre_train_epoch(sess, generator, gen_data_loader)
+    #     if epoch % 5 == 0:
+    #         generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
+    #         likelihood_data_loader.create_batches(eval_file)
+    #         test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
+    #         print 'pre-train epoch ', epoch, 'test_loss ', test_loss
+    #         buffer = 'epoch:\t'+ str(epoch) + '\tnll:\t' + str(test_loss) + '\n'
+    #         log.write(buffer)
+    #    saver.save(session, model_path+'/pretrain_G', global_step=epoch)
+	
+    # print 'Start pre-training discriminator...'
+    # # Train 3 epoch on the generated data and do this for 50 times
+    # for _ in range(50):
+    #     generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file)
+    #     dis_data_loader.load_train_data(positive_file, negative_file)
+    #     for _ in range(3):
+    #         dis_data_loader.reset_pointer()
+    #         for it in xrange(dis_data_loader.num_batch):
+    #             x_batch, y_batch = dis_data_loader.next_batch()
+    #             feed = {
+    #                 discriminator.input_x: x_batch,
+    #                 discriminator.input_y: y_batch,
+    #                 discriminator.dropout_keep_prob: dis_dropout_keep_prob
+    #             }
+    #             _ = sess.run(discriminator.train_op, feed)
+	#     saver.save(session, model_path+'/pretrain_D', global_step=_)
 	print '#########################################################################'
 	print 'Start Adversarial Training...'
 	for epoch in range(num_epoch):	
@@ -91,7 +119,7 @@ def train():
 						_ = sess.run(discriminator.train_op, feed)
 	
 			sys.stdout.write("\nEpochID: {0}, Saving Model...\n".format(epoch))
-			saver.save(session, model_dir+model_name, global_step=epoch)
+			saver.save(session, model_path+'/GAN', global_step=epoch)
 
 
 if __name__ == '__main__':
