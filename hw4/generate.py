@@ -25,19 +25,20 @@ def generate():
 
 	
 	#makedirs
-	model_path  = model_dir+model_name
-	sample_path = sample_dir+model_name
+	model_path  = model_dir+args.model_name
+	sample_path = sample_dir+args.model_name
 	if not os.path.exists(sample_path):
 		os.makedirs(sample_path)
 	random.seed(SEED)
 	np.random.seed(SEED)
-	assert START_TOKEN == 0
+	assert START_TOKEN == 1
+
 
 	gen_data_loader = Gen_Data_loader(BATCH_SIZE)
 	#session and saver
 	session = tf.InteractiveSession()
 	saver = tf.train.Saver()
-	saver.restore(session, model_path + '/' + restore_version)
+	saver.restore(session, model_path + '/' + args.restore_version)
     
   
 	samples = generator.generate(sess)

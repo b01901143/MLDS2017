@@ -1,9 +1,10 @@
+#########################################################################################
 #  Generator  Hyper-parameters
 ######################################################################################
-EMB_DIM = 300 # embedding dimension
-HIDDEN_DIM = 300 # hidden state dimension of lstm cell
+EMB_DIM = 32 # embedding dimension
+HIDDEN_DIM = 32 # hidden state dimension of lstm cell
 SEQ_LENGTH = 20 # sequence length
-START_TOKEN = 0
+START_TOKEN = 1
 PRE_EPOCH_NUM = 120 # supervise (maximum likelihood estimation) epochs
 SEED = 88
 BATCH_SIZE = 64
@@ -21,12 +22,12 @@ dis_batch_size = 64
 #########################################################################################
 #  Basic Training Parameters
 #########################################################################################
-TOTAL_BATCH = 200
+TOTAL_EPOCH = 200
 positive_file = 'data/real_data.txt'
 negative_file = 'data/generator_sample.txt'
 eval_file = 'data/eval_file.txt'
 generated_num = 10000
-vocab_size = 80000
+vocab_size = 100000
 #train
 restore_flag = False
 num_epoch = 600
