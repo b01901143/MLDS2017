@@ -7,7 +7,7 @@ from dataloader import Gen_Data_loader, Dis_dataloader
 from generator import Generator
 from discriminator import Discriminator
 from rollout import ROLLOUT
-from function import *
+from utility import *
 
 
 model_name="ver1"
@@ -37,7 +37,6 @@ def train():
 
 	gen_data_loader = Gen_Data_loader(BATCH_SIZE)
 	likelihood_data_loader = Gen_Data_loader(BATCH_SIZE) # For testing
-	vocab_size = 80000
 	dis_data_loader = Dis_dataloader(BATCH_SIZE)
 
 

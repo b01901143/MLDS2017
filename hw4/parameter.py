@@ -22,11 +22,11 @@ dis_batch_size = 64
 #  Basic Training Parameters
 #########################################################################################
 TOTAL_BATCH = 200
-positive_file = 'save/real_data.txt'
-negative_file = 'save/generator_sample.txt'
-eval_file = 'save/eval_file.txt'
+positive_file = 'data/real_data.txt'
+negative_file = 'data/generator_sample.txt'
+eval_file = 'data/eval_file.txt'
 generated_num = 10000
-
+vocab_size = 80000
 #train
 restore_flag = False
 num_epoch = 600

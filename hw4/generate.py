@@ -8,7 +8,7 @@ from dataloader import Gen_Data_loader, Dis_dataloader
 from generator import Generator
 from discriminator import Discriminator
 from rollout import ROLLOUT
-from function import *
+from utility import *
 
 
 
@@ -33,7 +33,6 @@ def generate():
 	assert START_TOKEN == 0
 
 	gen_data_loader = Gen_Data_loader(BATCH_SIZE)
-	vocab_size = 80000
 	#session and saver
 	session = tf.InteractiveSession()
 	saver = tf.train.Saver()
