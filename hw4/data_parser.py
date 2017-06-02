@@ -9,7 +9,7 @@ limit = {
         }
 
 UNK = '<unk>'
-VOCAB_SIZE = 8000 - 4
+VOCAB_SIZE = 100000 - 3
 
 
 import random
@@ -169,7 +169,7 @@ def index_(tokenized_sentences, vocab_size):
     # get vocabulary of 'vocab_size' most used words
     vocab = freq_dist.most_common(vocab_size)
     # index2word
-    index2word = ['<start>'] + ['<pad>'] + ['<end>'] + [UNK] + [ x[0] for x in vocab ]
+    index2word = ['<pad>'] + ['<start>'] + [UNK] + [ x[0] for x in vocab ]
     # word2index
     word2index = dict([(w,i) for i,w in enumerate(index2word)] )
     return index2word, word2index, freq_dist
@@ -316,11 +316,11 @@ def process_data():
         pickle.dump(metadata, f)
 
     # count of unknowns
-    unk_count = (idx_q == 1).sum() + (idx_a == 1).sum()
+    unk_count = (idx_q == 2).sum() + (idx_a == 2).sum()
     # count of words
-    word_count = (idx_q > 1).sum() + (idx_a > 1).sum()
+    word_count = (idx_q > 2).sum() + (idx_a > 2).sum()
 
-    print('% unknown : {0}'.format(100 * (unk_count/word_count)))
+    print('% unknown : {0}'.format(100 * (float(unk_count)/word_count)))
     print('Dataset count : ' + str(idx_q.shape[0]))
 
 
@@ -340,6 +340,26 @@ def load_data(PATH=''):
     idx_q = np.load(PATH + 'idx_q.npy')
     idx_a = np.load(PATH + 'idx_a.npy')
     return metadata, idx_q, idx_a
+
+def get_paired_data():
+    metadata, idx_q, idx_a = load_data()
+    paired_data = np.hstack((idx_q,idx_a)).astype(np.int32)
+
+    return metadata, paired_data
+
+def shuffle_data(paired_data):    
+    np.random.shuffle(paired_data)
+
+    q = paired_data[:,:limit['maxq']]
+    a = paired_data[:,limit['maxq']:]
+    
+    return q, a
+    
+
+    # np.random.shuffle(idx_q)
+    # np.random.shuffle(idx_a)
+    
+
 
 
 

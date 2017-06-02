@@ -5,8 +5,13 @@ from dataloader import Gen_Data_loader, Dis_dataloader
 from generator import Generator
 from discriminator import Discriminator
 from rollout import ROLLOUT
-from target_lstm import TARGET_LSTM
+# from target_lstm import TARGET_LSTM
 import cPickle
+from data_parser import *
+
+metadata, paired_data = get_paired_data()
+# 
+# exit()
 
 #########################################################################################
 #  Generator  Hyper-parameters
@@ -14,7 +19,7 @@ import cPickle
 EMB_DIM = 32 # embedding dimension
 HIDDEN_DIM = 32 # hidden state dimension of lstm cell
 SEQ_LENGTH = 20 # sequence length
-START_TOKEN = 0
+START_TOKEN = 1
 PRE_EPOCH_NUM = 120 # supervise (maximum likelihood estimation) epochs
 SEED = 88
 BATCH_SIZE = 64
@@ -32,7 +37,7 @@ dis_batch_size = 64
 #########################################################################################
 #  Basic Training Parameters
 #########################################################################################
-TOTAL_BATCH = 200
+TOTAL_EPOCH = 200
 positive_file = 'save/real_data.txt'
 negative_file = 'save/generator_sample.txt'
 eval_file = 'save/eval_file.txt'
@@ -81,18 +86,18 @@ def pre_train_epoch(sess, trainable_model, data_loader):
 def main():
     random.seed(SEED)
     np.random.seed(SEED)
-    assert START_TOKEN == 0
+    assert START_TOKEN == 1
 
     gen_data_loader = Gen_Data_loader(BATCH_SIZE)
     likelihood_data_loader = Gen_Data_loader(BATCH_SIZE) # For testing
-    vocab_size = 8000
+    vocab_size = 100000
     dis_data_loader = Dis_dataloader(BATCH_SIZE)
 
     generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN)
     target_params = cPickle.load(open('save/target_params.pkl'))
-    target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params) # The oracle model
+    # target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params) # The oracle model
 
-    discriminator = Discriminator(sequence_length=20, num_classes=2, vocab_size=vocab_size, embedding_size=dis_embedding_dim, 
+    discriminator = Discriminator(sequence_length=2*SEQ_LENGTH, num_classes=2, vocab_size=vocab_size, embedding_size=dis_embedding_dim, 
                                 filter_sizes=dis_filter_sizes, num_filters=dis_num_filters, l2_reg_lambda=dis_l2_reg_lambda)
 
     config = tf.ConfigProto()
@@ -101,8 +106,8 @@ def main():
     sess.run(tf.global_variables_initializer())
 
     # First, use the oracle model to provide the positive examples, which are sampled from the oracle data distribution
-    generate_samples(sess, target_lstm, BATCH_SIZE, generated_num, positive_file)
-    gen_data_loader.create_batches(positive_file)
+    # generate_samples(sess, target_lstm, BATCH_SIZE, generated_num, positive_file)
+    # gen_data_loader.create_batches(positive_file)
 
     log = open('save/experiment-log.txt', 'w')
     #  pre-train generator
@@ -139,41 +144,48 @@ def main():
     print '#########################################################################'
     print 'Start Adversarial Training...'
     log.write('adversarial training...\n')
-    for total_batch in range(TOTAL_BATCH):
-        # Train the generator for one step
-        for it in range(1):
-            samples = generator.generate(sess)
+    for epoch in range(TOTAL_EPOCH):
+        shuffled_q,shuffled_a = shuffle_data(paired_data)
+
+        for batch in range(1):#len(paired_data) // BATCH_SIZE):
+            current_question = shuffled_q[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
+            current_answer = shuffled_a[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
+
+            # Train the generator for one step
+            samples = generator.generate(sess, current_question)
             rewards = rollout.get_reward(sess, samples, 16, discriminator)
-            feed = {generator.x: samples, generator.rewards: rewards}
+            feed = {generator.x: samples, generator.rewards: rewards, generator.question: current_question}
             _ = sess.run(generator.g_updates, feed_dict=feed)
+            print batch,"c"
 
-        # Test
-        if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
-            generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
-            likelihood_data_loader.create_batches(eval_file)
-            test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
-            buffer = 'epoch:\t' + str(total_batch) + '\tnll:\t' + str(test_loss) + '\n'
-            print 'total_batch: ', total_batch, 'test_loss: ', test_loss
-            log.write(buffer)
+            # # Test
+            # if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
+            #     generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
+            #     likelihood_data_loader.create_batches(eval_file)
+            #     test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
+            #     buffer = 'epoch:\t' + str(total_batch) + '\tnll:\t' + str(test_loss) + '\n'
+            #     print 'total_batch: ', total_batch, 'test_loss: ', test_loss
+            #     log.write(buffer)
 
-        # Update roll-out parameters
-        rollout.update_params()
+            # Update roll-out parameters
+            rollout.update_params()
 
-        # Train the discriminator
-        for _ in range(5):
-            generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file)
-            dis_data_loader.load_train_data(positive_file, negative_file)
+            # Train the discriminator
 
-            for _ in range(3):
-                dis_data_loader.reset_pointer()
-                for it in xrange(dis_data_loader.num_batch):
-                    x_batch, y_batch = dis_data_loader.next_batch()
-                    feed = {
-                        discriminator.input_x: x_batch,
-                        discriminator.input_y: y_batch,
-                        discriminator.dropout_keep_prob: dis_dropout_keep_prob
-                    }
-                    _ = sess.run(discriminator.train_op, feed)
+            for _ in range(5):
+                generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file)
+                dis_data_loader.load_train_data(positive_file, negative_file)
+
+                for _ in range(3):
+                    dis_data_loader.reset_pointer()
+                    for it in xrange(dis_data_loader.num_batch):
+                        x_batch, y_batch = dis_data_loader.next_batch()
+                        feed = {
+                            discriminator.input_x: x_batch,
+                            discriminator.input_y: y_batch,
+                            discriminator.dropout_keep_prob: dis_dropout_keep_prob
+                        }
+                        _ = sess.run(discriminator.train_op, feed)
 
     log.close()
 

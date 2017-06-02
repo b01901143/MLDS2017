@@ -28,9 +28,10 @@ class Generator(object):
             self.g_output_unit = self.create_output_unit(self.g_params)  # maps h_t to o_t (output token logits)
 
         # placeholder definition
-		self.question= tf.placeholder(tf.int32, shape=[self.batch_size, self.sequence_length]) # sequence of tokens received by chatbot
+        self.x = tf.placeholder(tf.int32, shape=[self.batch_size, 2*self.sequence_length]) # generated sequence
+        self.question= tf.placeholder(tf.int32, shape=[self.batch_size, self.sequence_length]) # sequence of tokens received by chatbot
         self.answer  = tf.placeholder(tf.int32, shape=[self.batch_size, self.sequence_length]) # sequence of tokens answered by chatbot
-        self.rewards = tf.placeholder(tf.float32, shape=[self.batch_size, self.sequence_length]) # get from rollout policy and discriminator
+        self.rewards = tf.placeholder(tf.float32, shape=[self.batch_size, 2*self.sequence_length]) # get from rollout policy and discriminator
 
         # processed for batch
         with tf.device("/cpu:0"):
@@ -40,10 +41,23 @@ class Generator(object):
         self.h0 = tf.zeros([self.batch_size, self.hidden_dim])
         self.h0 = tf.stack([self.h0, self.h0])
 
-        gen_o = tensor_array_ops.TensorArray(dtype=tf.float32, size=self.sequence_length,
+        gen_o = tensor_array_ops.TensorArray(dtype=tf.float32, size=2*self.sequence_length,
                                              dynamic_size=False, infer_shape=True)
-        gen_x = tensor_array_ops.TensorArray(dtype=tf.int32, size=self.sequence_length,
+        gen_x = tensor_array_ops.TensorArray(dtype=tf.int32, size=2*self.sequence_length,
                                              dynamic_size=False, infer_shape=True)
+
+        def _g_recurrence_ques(i, x_t, h_tm1, gen_x):
+            h_t = self.g_recurrent_unit(x_t, h_tm1)  # hidden_memory_tuple
+            x_tp1 = tf.nn.embedding_lookup(self.g_embeddings, self.question[:,i])  # batch x emb_dim
+            gen_x = gen_x.write(i, self.question[:,i])
+           
+            return i + 1, x_tp1, h_t, gen_x
+
+        i, x_t, h_tm1, self.gen_x = control_flow_ops.while_loop(
+            cond=lambda i, _1, _2, _3: i < self.sequence_length,
+            body=_g_recurrence_ques,
+            loop_vars=(tf.constant(0, dtype=tf.int32),
+                       tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0, gen_x))
 
         def _g_recurrence(i, x_t, h_tm1, gen_o, gen_x):
             h_t = self.g_recurrent_unit(x_t, h_tm1)  # hidden_memory_tuple
@@ -57,22 +71,35 @@ class Generator(object):
             return i + 1, x_tp1, h_t, gen_o, gen_x
 
         _, _, _, self.gen_o, self.gen_x = control_flow_ops.while_loop(
-            cond=lambda i, _1, _2, _3, _4: i < self.sequence_length,
+            cond=lambda i, _1, _2, _3, _4: i < 2*self.sequence_length,
             body=_g_recurrence,
-            loop_vars=(tf.constant(0, dtype=tf.int32),
-                       tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0, gen_o, gen_x))
+            loop_vars=(i, x_t, h_tm1, gen_o, self.gen_x))
 
         self.gen_x = self.gen_x.stack()  # seq_length x batch_size
         self.gen_x = tf.transpose(self.gen_x, perm=[1, 0])  # batch_size x seq_length
 
         # supervised pretraining for generator
         g_predictions = tensor_array_ops.TensorArray(
-            dtype=tf.float32, size=self.sequence_length,
+            dtype=tf.float32, size=2*self.sequence_length,
             dynamic_size=False, infer_shape=True)
 
         ta_emb_x = tensor_array_ops.TensorArray(
-            dtype=tf.float32, size=self.sequence_length)
+            dtype=tf.float32, size=2*self.sequence_length)
         ta_emb_x = ta_emb_x.unstack(self.processed_x)
+
+        def _pretrain_recurrence_ques(i, x_t, h_tm1, g_predictions):
+            h_t = self.g_recurrent_unit(x_t, h_tm1)  # hidden_memory_tuple
+            o_t = self.g_output_unit(h_t)
+            g_predictions = g_predictions.write(i, tf.nn.softmax(o_t))
+            x_tp1 = tf.nn.embedding_lookup(self.g_embeddings, self.question[:,i])  # batch x emb_dim
+           
+            return i + 1, x_tp1, h_t, g_predictions
+
+        i, x_t, h_tm1, self.g_predictions = control_flow_ops.while_loop(
+            cond=lambda i, _1, _2, _3: i < self.sequence_length,
+            body=_pretrain_recurrence_ques,
+            loop_vars=(tf.constant(0, dtype=tf.int32),
+                       tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0, g_predictions))
 
         def _pretrain_recurrence(i, x_t, h_tm1, g_predictions):
             h_t = self.g_recurrent_unit(x_t, h_tm1)
@@ -82,11 +109,9 @@ class Generator(object):
             return i + 1, x_tp1, h_t, g_predictions
 
         _, _, _, self.g_predictions = control_flow_ops.while_loop(
-            cond=lambda i, _1, _2, _3: i < self.sequence_length,
+            cond=lambda i, _1, _2, _3: i < 2*self.sequence_length,
             body=_pretrain_recurrence,
-            loop_vars=(tf.constant(0, dtype=tf.int32),
-                       tf.nn.embedding_lookup(self.g_embeddings, self.start_token),
-                       self.h0, g_predictions))
+            loop_vars=(i, x_t, h_tm1, self.g_predictions))
 
         self.g_predictions = tf.transpose(self.g_predictions.stack(), perm=[1, 0, 2])  # batch_size x seq_length x vocab_size
 
@@ -95,7 +120,7 @@ class Generator(object):
             tf.one_hot(tf.to_int32(tf.reshape(self.x, [-1])), self.num_emb, 1.0, 0.0) * tf.log(
                 tf.clip_by_value(tf.reshape(self.g_predictions, [-1, self.num_emb]), 1e-20, 1.0)
             )
-        ) / (self.sequence_length * self.batch_size)
+        ) / (2*self.sequence_length * self.batch_size)
 
         # training updates
         pretrain_opt = self.g_optimizer(self.learning_rate)
@@ -118,8 +143,9 @@ class Generator(object):
         self.g_grad, _ = tf.clip_by_global_norm(tf.gradients(self.g_loss, self.g_params), self.grad_clip)
         self.g_updates = g_opt.apply_gradients(zip(self.g_grad, self.g_params))
 
-    def generate(self, sess):
-        outputs = sess.run(self.gen_x)
+    def generate(self, sess, current_question):
+        feed = {self.question: current_question}
+        outputs = sess.run(self.gen_x, feed_dict = feed)
         return outputs
 
     def pretrain_step(self, sess, x):
