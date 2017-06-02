@@ -69,7 +69,7 @@ def build_glove_embed(id2word):
 
 	
 	#extract label's embedding
-	for i, key in id2word.iteritems():
+	for i, key in enumerate(id2word):
 		ix = wordtoix.get(key)
 		if ix is not None:
 			embed[i] = embed_glove[ix]
@@ -87,6 +87,6 @@ def embed_initilize():
 	return embed
 
 if __name__ == '__main__':
-	dic = {1:'is',2:'happy'}
+	dic = ['is','happy']
 	build_glove_embed(dic)
 	
