@@ -105,7 +105,7 @@ def train():
             # # Test
             if epoch % 10 == 0 and batch == 0:
                 log = open('save/Epoch_' + str(epoch) + '.txt', 'w')
-                log.write('Epoch : 'str(epoch) + '\n')
+                log.write('Epoch : ' + str(epoch) + '\n')
                 for sete in samples:
                     log_list = []
                     for word in sete:

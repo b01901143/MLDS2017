@@ -155,7 +155,6 @@ def main():
             rewards = rollout.get_reward(sess, samples, 16, discriminator)
             feed = {generator.x: samples, generator.rewards: rewards, generator.question: current_question}
             _ = sess.run(generator.g_updates, feed_dict=feed)
-            print batch,"c"
 
             # # Test
             # if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
