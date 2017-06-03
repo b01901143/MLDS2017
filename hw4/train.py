@@ -90,21 +90,21 @@ def train():
     for epoch in range(TOTAL_EPOCH):
         shuffled_q,shuffled_a = shuffle_data(np.copy(paired_data))
 
-        for batch in range(len(paired_data) // BATCH_SIZE):
+        for batch in range(6):
             current_question = shuffled_q[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
             current_answer = shuffled_a[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
 
 
             # Train the generator for one step
-            print "generate samples"
+            # print "generate samples"
             samples = generator.generate(session, current_question)
-            print "rollout get reward"
+            # print "rollout get reward"
             rewards = rollout.get_reward(session, samples, 16, discriminator) #16
             feed = {generator.x: samples, generator.rewards: rewards, generator.question: current_question}
             _ = session.run(generator.g_updates, feed_dict=feed)
 
             # # log
-            if batch % 100 == 0:
+            if batch == 5:
                 for sete in samples:
                     log_list = []
                     for word in sete:
@@ -114,7 +114,7 @@ def train():
                 print log_list
 
 
-            if epoch % 10 == 0 and batch == 0:
+            if epoch % 10 == 0 and batch == 5:
                 log = open('save/GAN_Epoch_' + str(epoch) + '.txt', 'w')
                 log.write('Epoch : ' + str(epoch) + '\n')
                 for sete in samples:
@@ -132,12 +132,12 @@ def train():
             #     log.write(buffer)
 
             # Update roll-out parameters
-            print "rollout update"
+            # print "rollout update"
             rollout.update_params()
             # Train the discriminator
 
             for _ in range(5):
-                print "generate_samples negative"
+                # print "generate_samples negative"
                 positive_sample = np.hstack((current_question,current_answer))
                 negative_sample = generate_samples(session, generator, current_question, BATCH_SIZE, generated_num)
                 x_batch = np.vstack((positive_sample,negative_sample))
@@ -148,8 +148,7 @@ def train():
                 y_batch = np.concatenate([positive_labels, negative_labels], 0)
 
                 for it in xrange(len(x_batch) // BATCH_SIZE):
-                    print "discriminator:" 
-                    print it , len(x_batch) // BATCH_SIZE
+                    # print "discriminator:" 
                     feed = {
                         discriminator.input_x: x_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
                         discriminator.input_y: y_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],

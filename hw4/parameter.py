@@ -22,7 +22,7 @@ dis_batch_size = BATCH_SIZE
 #########################################################################################
 #  Basic Training Parameters
 #########################################################################################
-TOTAL_EPOCH = 500
+TOTAL_EPOCH = 100
 positive_file = 'data/real_data.txt'
 negative_file = 'data/generator_sample.txt'
 eval_file = 'data/eval_file.txt'
