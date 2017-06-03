@@ -26,7 +26,7 @@ TOTAL_EPOCH = 500
 positive_file = 'data/real_data.txt'
 negative_file = 'data/generator_sample.txt'
 eval_file = 'data/eval_file.txt'
-generated_num = 64*1 #10000
+generated_num = 64*3 #10000
 vocab_size = 35000
 #train
 restore_flag = False

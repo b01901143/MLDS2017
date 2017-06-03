@@ -90,7 +90,7 @@ def train():
     for epoch in range(TOTAL_EPOCH):
         shuffled_q,shuffled_a = shuffle_data(np.copy(paired_data))
 
-        for batch in range(1):#len(paired_data) // BATCH_SIZE):
+        for batch in range(len(paired_data) // BATCH_SIZE):
             current_question = shuffled_q[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
             current_answer = shuffled_a[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
 
@@ -98,7 +98,7 @@ def train():
             # Train the generator for one step
             samples = generator.generate(session, current_question)
 
-            rewards = rollout.get_reward(session, samples, 1, discriminator) #16
+            rewards = rollout.get_reward(session, samples, 16, discriminator) #16
             feed = {generator.x: samples, generator.rewards: rewards, generator.question: current_question}
             _ = session.run(generator.g_updates, feed_dict=feed)
 
