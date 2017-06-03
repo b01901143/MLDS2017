@@ -97,8 +97,9 @@ def train():
 
             # Train the generator for one step
             samples = generator.generate(session, current_question)
-
+            print "generate samples"
             rewards = rollout.get_reward(session, samples, 16, discriminator) #16
+            print "get reward"
             feed = {generator.x: samples, generator.rewards: rewards, generator.question: current_question}
             _ = session.run(generator.g_updates, feed_dict=feed)
 
@@ -108,7 +109,7 @@ def train():
                     log_list = []
                     for word in sete:
                         log_list.append(idx2w[word])
-                print 'GAN_Epoch : ' + str(epoch) + 'GAN_batch : ' + str(batch)
+                print 'GAN_Epoch : ' + str(epoch) + ', GAN_batch : ' + str(batch)
                 print 'Sample : '
                 print log_list
 
@@ -132,7 +133,7 @@ def train():
 
             # Update roll-out parameters
             rollout.update_params()
-
+            print "rollout"
             # Train the discriminator
 
             for _ in range(5):
@@ -152,6 +153,7 @@ def train():
                         discriminator.dropout_keep_prob: dis_dropout_keep_prob
                     }
                     _ = session.run(discriminator.train_op, feed)
+                    print it , len(x_batch) // BATCH_SIZE
 
 
 if __name__ == '__main__':
