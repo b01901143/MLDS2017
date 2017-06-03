@@ -7,7 +7,7 @@ SEQ_LENGTH = 20 # sequence length
 START_TOKEN = 1
 PRE_EPOCH_NUM = 120 # supervise (maximum likelihood estimation) epochs
 SEED = 88
-BATCH_SIZE = 10
+BATCH_SIZE = 64
 
 #########################################################################################
 #  Discriminator  Hyper-parameters
@@ -26,7 +26,7 @@ TOTAL_EPOCH = 500
 positive_file = 'data/real_data.txt'
 negative_file = 'data/generator_sample.txt'
 eval_file = 'data/eval_file.txt'
-generated_num = 64*3 #10000
+generated_num = BATCH_SIZE*3 #10000
 vocab_size = 35000
 #train
 restore_flag = False
