@@ -148,7 +148,8 @@ def train():
                 y_batch = np.concatenate([positive_labels, negative_labels], 0)
 
                 for it in xrange(len(x_batch) // BATCH_SIZE):
-                    print "discriminator" + it , len(x_batch) // BATCH_SIZE
+                    print "discriminator:" 
+                    print it , len(x_batch) // BATCH_SIZE
                     feed = {
                         discriminator.input_x: x_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
                         discriminator.input_y: y_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
