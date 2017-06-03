@@ -58,7 +58,7 @@ def train():
     #  pre-train generator
     print 'Start pre-training...'
     
-    for epoch in xrange(1):
+    for epoch in xrange(PRE_EPOCH_NUM):
         shuffled_q, shuffled_a = shuffle_data(np.copy(paired_data))
         loss = pre_train_epoch(session, generator, shuffled_q, shuffled_a)
         

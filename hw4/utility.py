@@ -35,7 +35,7 @@ def pre_train_epoch(sess, trainable_model, shuffled_q, shuffled_a):
 
     num_batch = len(shuffled_q) // BATCH_SIZE
 
-    for it in xrange(1):
+    for it in xrange(num_batch):
     	current_question = shuffled_q[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
         current_answer = shuffled_a[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
     	batch = np.hstack((current_question,current_answer))
