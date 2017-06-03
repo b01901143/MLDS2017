@@ -96,10 +96,10 @@ def train():
 
 
             # Train the generator for one step
-            samples = generator.generate(session, current_question)
             print "generate samples"
+            samples = generator.generate(session, current_question)
+            print "rollout get reward"
             rewards = rollout.get_reward(session, samples, 16, discriminator) #16
-            print "get reward"
             feed = {generator.x: samples, generator.rewards: rewards, generator.question: current_question}
             _ = session.run(generator.g_updates, feed_dict=feed)
 
@@ -132,11 +132,12 @@ def train():
             #     log.write(buffer)
 
             # Update roll-out parameters
+            print "rollout update"
             rollout.update_params()
-            print "rollout"
             # Train the discriminator
 
             for _ in range(5):
+                print "generate_samples negative"
                 positive_sample = np.hstack((current_question,current_answer))
                 negative_sample = generate_samples(session, generator, current_question, BATCH_SIZE, generated_num)
                 x_batch = np.vstack((positive_sample,negative_sample))
@@ -147,13 +148,13 @@ def train():
                 y_batch = np.concatenate([positive_labels, negative_labels], 0)
 
                 for it in xrange(len(x_batch) // BATCH_SIZE):
+                    print "discriminator" + it , len(x_batch) // BATCH_SIZE
                     feed = {
                         discriminator.input_x: x_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
                         discriminator.input_y: y_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
                         discriminator.dropout_keep_prob: dis_dropout_keep_prob
                     }
                     _ = session.run(discriminator.train_op, feed)
-                    print it , len(x_batch) // BATCH_SIZE
 
 
 if __name__ == '__main__':
