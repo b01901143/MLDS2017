@@ -148,8 +148,8 @@ class Generator(object):
         outputs = sess.run(self.gen_x, feed_dict = feed)
         return outputs
 
-    def pretrain_step(self, sess, x):
-        outputs = sess.run([self.pretrain_updates, self.pretrain_loss], feed_dict={self.x: x})
+    def pretrain_step(self, sess, x, current_question):
+        outputs = sess.run([self.pretrain_updates, self.pretrain_loss], feed_dict={self.x: x, self.question: current_question})
         return outputs
 
     def init_matrix(self, shape):

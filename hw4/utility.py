@@ -29,14 +29,18 @@ def target_loss(sess, target_lstm, data_loader):
     return np.mean(nll)
 
 
-def pre_train_epoch(sess, trainable_model, data_loader):
+def pre_train_epoch(sess, trainable_model, shuffled_q, shuffled_a):
     # Pre-train the generator using MLE for one epoch
     supervised_g_losses = []
-    data_loader.reset_pointer()
 
-    for it in xrange(data_loader.num_batch):
-        batch = data_loader.next_batch()
-        _, g_loss = trainable_model.pretrain_step(sess, batch)
+    num_batch = len(shuffled_q) // BATCH_SIZE
+
+    for it in xrange(1):
+    	current_question = shuffled_q[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
+        current_answer = shuffled_a[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
+    	batch = np.hstack((current_question,current_answer))
+
+        _, g_loss = trainable_model.pretrain_step(sess, batch, current_question)
         supervised_g_losses.append(g_loss)
 
     return np.mean(supervised_g_losses)

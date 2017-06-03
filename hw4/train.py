@@ -56,35 +56,37 @@ def train():
         session.run(tf.global_variables_initializer())
     
     #  pre-train generator
-    # print 'Start pre-training...'
+    print 'Start pre-training...'
     
-    # for epoch in xrange(PRE_EPOCH_NUM):
-    #     loss = pre_train_epoch(session, generator, gen_data_loader)
-    #     if epoch % 5 == 0:
-    #         generate_samples(session, generator, BATCH_SIZE, generated_num, eval_file)
-    #         likelihood_data_loader.create_batches(eval_file)
-    #         test_loss = target_loss(session, target_lstm, likelihood_data_loader)
-    #         print 'pre-train epoch ', epoch, 'test_loss ', test_loss
-    #         buffer = 'epoch:\t'+ str(epoch) + '\tnll:\t' + str(test_loss) + '\n'
-    #         log.write(buffer)
-    #    saver.save(session, model_path+'/pretrain_G', global_step=epoch)
+    for epoch in xrange(1):
+        shuffled_q, shuffled_a = shuffle_data(np.copy(paired_data))
+        loss = pre_train_epoch(session, generator, shuffled_q, shuffled_a)
+        
+        saver.save(session, model_path+'/pretrain_G', global_step=epoch)
     
-    # print 'Start pre-training discriminator...'
-    # # Train 3 epoch on the generated data and do this for 50 times
-    # for _ in range(50):
-    #     generate_samples(session, generator, BATCH_SIZE, generated_num, negative_file)
-    #     dis_data_loader.load_train_data(positive_file, negative_file)
-    #     for _ in range(3):
-    #         dis_data_loader.reset_pointer()
-    #         for it in xrange(dis_data_loader.num_batch):
-    #             x_batch, y_batch = dis_data_loader.next_batch()
-    #             feed = {
-    #                 discriminator.input_x: x_batch,
-    #                 discriminator.input_y: y_batch,
-    #                 discriminator.dropout_keep_prob: dis_dropout_keep_prob
-    #             }
-    #             _ = session.run(discriminator.train_op, feed)
-    #     saver.save(session, model_path+'/pretrain_D', global_step=_)
+    print 'Start pre-training discriminator...'
+    # Train 3 epoch on the generated data and do this for 50 times
+    for _ in range(50):
+        shuffled_q, shuffled_a = shuffle_data(np.copy(paired_data))
+        positive_sample = np.hstack((shuffled_q,shuffled_a))
+        negative_sample = generate_samples(session, generator, current_question, BATCH_SIZE, len(positive_sample))
+        x_batch = np.vstack((positive_sample,negative_sample))
+
+        positive_labels = [[0, 1] for _ in positive_sample]
+        negative_labels = [[1, 0] for _ in negative_sample]
+        y_batch = np.concatenate([positive_labels, negative_labels], 0)
+        for _ in range(3):
+            dis_data_loader.reset_pointer()
+            for it in xrange(dis_data_loader.num_batch):
+                x_batch, y_batch = dis_data_loader.next_batch()
+                feed = {
+                    discriminator.input_x: x_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
+                    discriminator.input_y: y_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
+                    discriminator.dropout_keep_prob: dis_dropout_keep_prob
+                }
+                _ = session.run(discriminator.train_op, feed)
+
+        saver.save(session, model_path+'/pretrain_D', global_step=_)
     print '#########################################################################'
     print 'Start Adversarial Training...'
     for epoch in range(TOTAL_EPOCH):
@@ -150,14 +152,16 @@ def train():
                 negative_labels = [[1, 0] for _ in negative_sample]
                 y_batch = np.concatenate([positive_labels, negative_labels], 0)
 
-                for it in xrange(len(x_batch) // BATCH_SIZE):
-                    # print "discriminator:" 
-                    feed = {
-                        discriminator.input_x: x_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
-                        discriminator.input_y: y_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
-                        discriminator.dropout_keep_prob: dis_dropout_keep_prob
-                    }
-                    _ = session.run(discriminator.train_op, feed)
+                # Train 3 epoch on the generated data
+                for _ in range(3):
+                    for it in xrange(len(x_batch) // BATCH_SIZE):
+                        # print "discriminator:" 
+                        feed = {
+                            discriminator.input_x: x_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
+                            discriminator.input_y: y_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
+                            discriminator.dropout_keep_prob: dis_dropout_keep_prob
+                        }
+                        _ = session.run(discriminator.train_op, feed)
 
 
 if __name__ == '__main__':
