@@ -113,6 +113,8 @@ def train():
                         log.write( str(idx2w[word]) + ' ')
                     log.write('\n')
                 log.close()
+                print 'Epoch : ' + str(epoch)
+                print 'Sample : 'log_list
 
             # if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
             #     generate_samples(session, generator, BATCH_SIZE, generated_num, eval_file)
