@@ -9,7 +9,7 @@ limit = {
         }
 
 UNK = '<unk>'
-VOCAB_SIZE = 80000 - 4
+VOCAB_SIZE = 35000 - 4
 
 
 import random

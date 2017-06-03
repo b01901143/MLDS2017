@@ -6,16 +6,13 @@ from parameter import *
 
 glove_txt_path = '../vocab/glove.42B.300d.txt'
 embed_path  = './data/glove_300d.pic'
-def generate_samples(sess, trainable_model, batch_size, generated_num, output_file):
+def generate_samples(sess, trainable_model, current_question, batch_size, generated_num):
     # Generate Samples
     generated_samples = []
     for _ in range(int(generated_num / batch_size)):
-        generated_samples.extend(trainable_model.generate(sess))
+        generated_samples.extend(trainable_model.generate(sess, current_question))
 
-    with open(output_file, 'w') as fout:
-        for poem in generated_samples:
-            buffer = ' '.join([str(x) for x in poem]) + '\n'
-            fout.write(buffer)
+    return np.asarray(generated_samples, dtype = np.int32)
 
 
 def target_loss(sess, target_lstm, data_loader):
