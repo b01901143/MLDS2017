@@ -68,20 +68,21 @@ def train():
     # Train 3 epoch on the generated data and do this for 50 times
     for _ in range(50):
         shuffled_q, shuffled_a = shuffle_data(np.copy(paired_data))
-        positive_sample = np.hstack((shuffled_q,shuffled_a))
-        negative_sample = generate_samples(session, generator, current_question, BATCH_SIZE, len(positive_sample))
-        x_batch = np.vstack((positive_sample,negative_sample))
-
-        positive_labels = [[0, 1] for _ in positive_sample]
-        negative_labels = [[1, 0] for _ in negative_sample]
-        y_batch = np.concatenate([positive_labels, negative_labels], 0)
+        shuffled_pair = np.hstack((shuffled_q,shuffled_a))
+        
         for _ in range(3):
-            dis_data_loader.reset_pointer()
-            for it in xrange(dis_data_loader.num_batch):
-                x_batch, y_batch = dis_data_loader.next_batch()
+            for it in xrange(len(shuffled_pair) // BATCH_SIZE):
+                current_question = shuffled_q[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
+                negative_sample = generate_samples(session, generator, current_question, BATCH_SIZE, generated_num)
+                positive_sample = shuffled_pair[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
+                x_batch = np.vstack((positive_sample,negative_sample))
+
+                positive_labels = [[0, 1] for _ in positive_sample]
+                negative_labels = [[1, 0] for _ in negative_sample]
+                y_batch = np.concatenate([positive_labels, negative_labels], 0)
                 feed = {
-                    discriminator.input_x: x_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
-                    discriminator.input_y: y_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
+                    discriminator.input_x: x_batch,
+                    discriminator.input_y: y_batch,
                     discriminator.dropout_keep_prob: dis_dropout_keep_prob
                 }
                 _ = session.run(discriminator.train_op, feed)
