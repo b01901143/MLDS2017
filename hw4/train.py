@@ -89,7 +89,7 @@ def train():
     print 'Start Adversarial Training...'
     for epoch in range(TOTAL_EPOCH):
         shuffled_q,shuffled_a = shuffle_data(np.copy(paired_data))
-
+        saver.save(session, model_path+'/GAN', global_step=epoch)
         for batch in range(6):
             current_question = shuffled_q[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
             current_answer = shuffled_a[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
@@ -103,7 +103,7 @@ def train():
             feed = {generator.x: samples, generator.rewards: rewards, generator.question: current_question}
             _ = session.run(generator.g_updates, feed_dict=feed)
 
-            # # log
+            # # log and save
             if batch == 5:
                 for sete in samples:
                     log_list = []
@@ -122,6 +122,9 @@ def train():
                         log.write( str(idx2w[word]) + ' ')
                     log.write('\n')
                 log.close()
+
+            if batch % save_num_batch == 0:                                                                                                                                                                
+                saver.save(session, model_path+'/GAN', global_step=epoch)
                
             # if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
             #     generate_samples(session, generator, BATCH_SIZE, generated_num, eval_file)
