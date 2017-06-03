@@ -57,7 +57,7 @@ def train():
     
     #  pre-train generator
     # print 'Start pre-training...'
-    # log.write('pre-training...\n')
+    
     # for epoch in xrange(PRE_EPOCH_NUM):
     #     loss = pre_train_epoch(session, generator, gen_data_loader)
     #     if epoch % 5 == 0:
@@ -102,21 +102,26 @@ def train():
             feed = {generator.x: samples, generator.rewards: rewards, generator.question: current_question}
             _ = session.run(generator.g_updates, feed_dict=feed)
 
-            # # Test
-            if epoch % 10 == 0 and batch == 0:
-                log = open('save/Epoch_' + str(epoch) + '.txt', 'w')
-                log.write('Epoch : ' + str(epoch) + '\n')
+            # # log
+            if batch % 100 == 0:
                 for sete in samples:
                     log_list = []
                     for word in sete:
                         log_list.append(idx2w[word])
-                        log.write( str(idx2w[word]) + ' ')
-                    log.write('\n')
-                log.close()
-                print 'Epoch : ' + str(epoch)
+                print 'GAN_Epoch : ' + str(epoch) + 'GAN_batch : ' + str(batch)
                 print 'Sample : '
                 print log_list
 
+
+            if epoch % 10 == 0 and batch == 0:
+                log = open('save/GAN_Epoch_' + str(epoch) + '.txt', 'w')
+                log.write('Epoch : ' + str(epoch) + '\n')
+                for sete in samples:
+                    for word in sete:
+                        log.write( str(idx2w[word]) + ' ')
+                    log.write('\n')
+                log.close()
+               
             # if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
             #     generate_samples(session, generator, BATCH_SIZE, generated_num, eval_file)
             #     likelihood_data_loader.create_batches(eval_file)
