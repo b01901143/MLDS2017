@@ -67,7 +67,7 @@ def train():
             saver.save(session, model_path+'/pretrain_G', global_step=epoch)
             print "\n training epoch:"+str(epoch) + " time taken:"+ timer.count(0)
 
-    if(args.stage == 'pretrainD'):
+    if(args.stage == 'pretrainG' or args.stage == 'pretrainD'):
         # Train 3 epoch on the generated data and do this for 50 times
         print 'Start pre-training discriminator...'
         timer.refresh(0)

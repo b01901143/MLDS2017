@@ -13,8 +13,8 @@ BATCH_SIZE = 64
 #  Discriminator  Hyper-parameters
 #########################################################################################
 dis_embedding_dim = 2*EMB_DIM
-dis_filter_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20]
-dis_num_filters = [100, 200, 200, 200, 200, 100, 100, 100, 100, 100, 160, 160]
+dis_filter_sizes = [1, 2, 3, 4, 5, 6]
+dis_num_filters = [100, 200, 200, 200, 200, 100]
 dis_dropout_keep_prob = 0.75
 dis_l2_reg_lambda = 0.2
 dis_batch_size = BATCH_SIZE
@@ -27,7 +27,7 @@ positive_file = 'data/real_data.txt'
 negative_file = 'data/generator_sample.txt'
 eval_file = 'data/eval_file.txt'
 generated_num = BATCH_SIZE*3 #10000
-vocab_size = 8000
+vocab_size = 20000
 #train
 restore_flag = False
 num_epoch = 600
