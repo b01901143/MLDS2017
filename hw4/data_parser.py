@@ -1,3 +1,4 @@
+import parameter
 EN_WHITELIST = '0123456789abcdefghijklmnopqrstuvwxyz ' # space is included in whitelist
 EN_BLACKLIST = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~\''
 
@@ -9,7 +10,7 @@ limit = {
         }
 
 UNK = '<unk>'
-VOCAB_SIZE = 35000 - 4
+VOCAB_SIZE = parameter.vocab_size - 4
 
 
 import random
@@ -25,7 +26,7 @@ import pickle
 
 
 
-''' 
+'''
     1. Read from 'movie-lines.txt'
     2. Create a dictionary with ( key = line_id, value = text )
 '''
@@ -93,7 +94,7 @@ def gather_dataset(convs, id2line):
     4. test.dec  : Decoder input for testing
 '''
 def prepare_seq2seq_files(questions, answers, path='',TESTSET_SIZE = 30000):
-    
+
     # open files
     train_enc = open(path + 'train.enc','w')
     train_dec = open(path + 'train.dec','w')
@@ -118,7 +119,7 @@ def prepare_seq2seq_files(questions, answers, path='',TESTSET_SIZE = 30000):
     train_dec.close()
     test_enc.close()
     test_dec.close()
-            
+
 
 
 '''
@@ -205,18 +206,18 @@ def filter_unk(qtokenized, atokenized, w2idx):
 
 
 '''
- create the final dataset : 
+ create the final dataset :
   - convert list of items to arrays of indices
   - add zero padding
       return ( [array_en([indices]), array_ta([indices]) )
- 
+
 '''
 def zero_pad(qtokenized, atokenized, w2idx):
     # num of rows
     data_len = len(qtokenized)
 
     # numpy arrays to store indices
-    idx_q = np.zeros([data_len, limit['maxq']], dtype=np.int32) 
+    idx_q = np.zeros([data_len, limit['maxq']], dtype=np.int32)
     idx_a = np.zeros([data_len, limit['maxa']], dtype=np.int32)
 
     for i in range(data_len):
@@ -287,11 +288,11 @@ def process_data():
     for q,a in zip(qtokenized[141:145], atokenized[141:145]):
         print('q : [{0}]; a : [{1}]'.format(q,a))
 
-    # indexing -> idx2w, w2idx 
+    # indexing -> idx2w, w2idx
     print('\n >> Index words')
     idx2w, w2idx, freq_dist = index_( qtokenized + atokenized, vocab_size=VOCAB_SIZE)
 
-    
+
     # filter out sentences with too many unknowns
     print('\n >> Filter Unknowns')
     qtokenized, atokenized = filter_unk(qtokenized, atokenized, w2idx)
@@ -351,18 +352,18 @@ def get_paired_data():
 
     return metadata, paired_data
 
-def shuffle_data(paired_data):    
+def shuffle_data(paired_data):
     np.random.shuffle(paired_data)
 
     q = paired_data[:,:limit['maxq']]
     a = paired_data[:,limit['maxq']:]
-    
+
     return q, a
-    
+
 
     # np.random.shuffle(idx_q)
     # np.random.shuffle(idx_a)
-    
+
 
 
 

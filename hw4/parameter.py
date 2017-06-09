@@ -1,8 +1,8 @@
 #########################################################################################
 #  Generator  Hyper-parameters
 ######################################################################################
-EMB_DIM = 32 # embedding dimension
-HIDDEN_DIM = 32 # hidden state dimension of lstm cell
+EMB_DIM = 256 # embedding dimension
+HIDDEN_DIM = 256 # hidden state dimension of lstm cell
 SEQ_LENGTH = 20 # sequence length
 START_TOKEN = 1
 PRE_EPOCH_NUM = 120 # supervise (maximum likelihood estimation) epochs
@@ -12,7 +12,7 @@ BATCH_SIZE = 64
 #########################################################################################
 #  Discriminator  Hyper-parameters
 #########################################################################################
-dis_embedding_dim = 600
+dis_embedding_dim = 2*EMB_DIM
 dis_filter_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20]
 dis_num_filters = [100, 200, 200, 200, 200, 100, 100, 100, 100, 100, 160, 160]
 dis_dropout_keep_prob = 0.75
@@ -22,12 +22,12 @@ dis_batch_size = BATCH_SIZE
 #########################################################################################
 #  Basic Training Parameters
 #########################################################################################
-TOTAL_EPOCH = 100
+TOTAL_EPOCH = 101
 positive_file = 'data/real_data.txt'
 negative_file = 'data/generator_sample.txt'
 eval_file = 'data/eval_file.txt'
 generated_num = BATCH_SIZE*3 #10000
-vocab_size = 35000
+vocab_size = 8000
 #train
 restore_flag = False
 num_epoch = 600
