@@ -56,7 +56,7 @@ def generate():
         current_question = shuffled_q[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
         current_answer = shuffled_a[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
         batch = np.hstack((current_question,current_answer))
-        samples = generator.generate(session, current_question)
+        samples = generator.generate_test(session, current_question)
 
         if it == 0:
             total_samples = samples

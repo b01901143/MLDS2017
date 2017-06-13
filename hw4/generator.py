@@ -45,6 +45,8 @@ class Generator(object):
                                              dynamic_size=False, infer_shape=True)
         gen_x = tensor_array_ops.TensorArray(dtype=tf.int32, size=2*self.sequence_length,
                                              dynamic_size=False, infer_shape=True)
+        gen_x_test = tensor_array_ops.TensorArray(dtype=tf.int32, size=2*self.sequence_length,
+                                             dynamic_size=False, infer_shape=True)
 
         def _g_recurrence_ques(i, x_t, h_tm1, gen_x):
             h_t = self.g_recurrent_unit(x_t, h_tm1)  # hidden_memory_tuple
@@ -75,8 +77,31 @@ class Generator(object):
             body=_g_recurrence,
             loop_vars=(i, x_t, h_tm1, gen_o, self.gen_x))
 
+        i, x_t, h_tm1, self.gen_x_test = control_flow_ops.while_loop(
+            cond=lambda i, _1, _2, _3: i < self.sequence_length,
+            body=_g_recurrence_ques,
+            loop_vars=(tf.constant(0, dtype=tf.int32),
+                       tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0, gen_x))
+
+        def _g_recurrence_test(i, x_t, h_tm1, gen_x):
+            h_t = self.g_recurrent_unit(x_t, h_tm1)  # hidden_memory_tuple
+            o_t = self.g_output_unit(h_t)  # batch x vocab , logits not prob
+            log_prob = tf.log(tf.nn.softmax(o_t))
+            next_token = tf.cast(tf.reshape(tf.argmax(log_prob, 0), [self.batch_size]), tf.int32)
+            x_tp1 = tf.nn.embedding_lookup(self.g_embeddings, next_token)  # batch x emb_dim
+           
+            gen_x = gen_x.write(i, next_token)  # indices, batch_size
+            return i + 1, x_tp1, h_t, gen_x
+
+        _, _, _, self.gen_x_test = control_flow_ops.while_loop(
+            cond=lambda i, _1, _2, _3: i < 2*self.sequence_length,
+            body=_g_recurrence_test,
+            loop_vars=(i, x_t, h_tm1, gen_o, self.gen_x_test))
+
         self.gen_x = self.gen_x.stack()  # seq_length x batch_size
+        self.gen_x_test = self.gen_x_test.stack()  # seq_length x batch_size
         self.gen_x = tf.transpose(self.gen_x, perm=[1, 0])  # batch_size x seq_length
+        self.gen_x_test = tf.transpose(self.gen_x_test, perm=[1, 0])  # batch_size x seq_length
 
         # supervised pretraining for generator
         g_predictions = tensor_array_ops.TensorArray(
@@ -134,6 +159,11 @@ class Generator(object):
     def generate(self, sess, current_question):
         feed = {self.question: current_question}
         outputs = sess.run(self.gen_x, feed_dict = feed)
+        return outputs
+
+    def generate_test(self, sess, current_question):
+        feed = {self.question: current_question}
+        outputs = sess.run(self.gen_x_test, feed_dict = feed)
         return outputs
 
     def pretrain_step(self, sess, x, current_question):
