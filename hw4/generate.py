@@ -33,6 +33,9 @@ def generate():
 	np.random.seed(SEED)
 	assert START_TOKEN == 1
 
+	metadata, paired_data = get_paired_data()
+    idx2w = metadata['idx2w']
+
 
 	gen_data_loader = Gen_Data_loader(BATCH_SIZE)
 	#session and saver
@@ -40,10 +43,28 @@ def generate():
 	saver = tf.train.Saver()
 	saver.restore(session, model_path + '/' + args.restore_version)
     
-  
-	samples = generator.generate(sess)
-	with open(output_file, 'wb') as out_file:
-		out_file.write(samples)
+    shuffled_q, shuffled_a = shuffle_data(np.copy(paired_data))
+  	num_batch = len(shuffled_q) // BATCH_SIZE
+    _time = time.time()
+
+    total_samples = []
+    train_samples = []
+
+    for it in xrange(num_batch):
+        
+        current_question = shuffled_q[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
+        current_answer = shuffled_a[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
+        batch = np.hstack((current_question,current_answer))
+        samples = generator.generate(session, current_question)
+
+        total_samples += samples
+        train_samples += batch.tolist()
+
+    # save_samples(total_samples ,idx2w=idx2w , sample_path=sample_path+str(epoch)+'.txt')
+    save_samples(total_samples ,idx2w=idx2w , sample_path='testing.txt')
+    save_samples(train_samples ,idx2w=idx2w , sample_path='training_data.txt')
+
+	
 
 
 if __name__ == '__main__':
