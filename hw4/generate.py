@@ -9,6 +9,7 @@ from generator import Generator
 from discriminator import Discriminator
 from rollout import ROLLOUT
 from utility import *
+from data_parser import *
 
 
 
@@ -57,8 +58,13 @@ def generate():
         batch = np.hstack((current_question,current_answer))
         samples = generator.generate(session, current_question)
 
-        total_samples += samples
-        train_samples += batch.tolist()
+        if it == 0:
+            total_samples = samples
+            train_samples = batch
+
+        else:
+            total_samples = np.hstack((total_samples,samples))
+            train_samples = np.hstack((train_samples,batch))
 
     # save_samples(total_samples ,idx2w=idx2w , sample_path=sample_path+str(epoch)+'.txt')
     save_samples(total_samples ,idx2w=idx2w , sample_path='testing.txt')
