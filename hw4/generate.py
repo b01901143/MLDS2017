@@ -13,38 +13,38 @@ from utility import *
 
 
 def generate():
-	parser = argparse.ArgumentParser()
-	parser.add_argument("--model_name", type=str, help="for example: seqGan1")
-	parser.add_argument("--restore_version", type=str, help="for example: GAN-300 ")
-	parser.add_argument("--model_type", type=str,default='SeqGAN' , help=" [S2S,RL,BEST] appended to output file name")
-	parser.add_argument("--input_file", type=str, help="for example: ./data/testing_question.txt")
-	parser.add_argument("--output_file",type=str, help="for example: ./data/testing_answer.txt")
-	args = parser.parse_args()
-	#model
-	generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_name", type=str, help="for example: seqGan1")
+    parser.add_argument("--restore_version", type=str, help="for example: GAN-300 ")
+    parser.add_argument("--model_type", type=str,default='SeqGAN' , help=" [S2S,RL,BEST] appended to output file name")
+    parser.add_argument("--input_file", type=str, help="for example: ./data/testing_question.txt")
+    parser.add_argument("--output_file",type=str, help="for example: ./data/testing_answer.txt")
+    args = parser.parse_args()
+    #model
+    generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN)
 
-	
-	#makedirs
-	model_path  = model_dir+args.model_name
-	sample_path = sample_dir+args.model_name
-	if not os.path.exists(sample_path):
-		os.makedirs(sample_path)
-	random.seed(SEED)
-	np.random.seed(SEED)
-	assert START_TOKEN == 1
+    
+    #makedirs
+    model_path  = model_dir+args.model_name
+    sample_path = sample_dir+args.model_name
+    if not os.path.exists(sample_path):
+        os.makedirs(sample_path)
+    random.seed(SEED)
+    np.random.seed(SEED)
+    assert START_TOKEN == 1
 
-	metadata, paired_data = get_paired_data()
+    metadata, paired_data = get_paired_data()
     idx2w = metadata['idx2w']
 
 
-	gen_data_loader = Gen_Data_loader(BATCH_SIZE)
-	#session and saver
-	session = tf.InteractiveSession()
-	saver = tf.train.Saver()
-	saver.restore(session, model_path + '/' + args.restore_version)
+    gen_data_loader = Gen_Data_loader(BATCH_SIZE)
+    #session and saver
+    session = tf.InteractiveSession()
+    saver = tf.train.Saver()
+    saver.restore(session, model_path + '/' + args.restore_version)
     
     shuffled_q, shuffled_a = shuffle_data(np.copy(paired_data))
-  	num_batch = len(shuffled_q) // BATCH_SIZE
+    num_batch = len(shuffled_q) // BATCH_SIZE
     _time = time.time()
 
     total_samples = []
@@ -64,8 +64,8 @@ def generate():
     save_samples(total_samples ,idx2w=idx2w , sample_path='testing.txt')
     save_samples(train_samples ,idx2w=idx2w , sample_path='training_data.txt')
 
-	
+    
 
 
 if __name__ == '__main__':
-	generate()
+    generate()
