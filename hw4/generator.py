@@ -50,7 +50,7 @@ class Generator(object):
             h_t = self.g_recurrent_unit(x_t, h_tm1)  # hidden_memory_tuple
             x_tp1 = tf.nn.embedding_lookup(self.g_embeddings, self.question[:,i])  # batch x emb_dim
             gen_x = gen_x.write(i, self.question[:,i])
-           
+
             return i + 1, x_tp1, h_t, gen_x
 
         i, x_t, h_tm1, self.gen_x = control_flow_ops.while_loop(

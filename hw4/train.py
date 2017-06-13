@@ -72,7 +72,7 @@ def train():
         print 'Start pre-training discriminator...'
         timer.refresh(0)
         timer.refresh(1)
-        for epoch in range(50):
+        for epoch in range(10):
             shuffled_q, shuffled_a = shuffle_data(np.copy(paired_data))
             shuffled_pair = np.hstack((shuffled_q,shuffled_a))
 
@@ -100,13 +100,35 @@ def train():
 
     print '#########################################################################'
     print 'Start Adversarial Training...'
-    for epoch in range(TOTAL_EPOCH):
+    for epoch in range(100,TOTAL_EPOCH):
         shuffled_q,shuffled_a = shuffle_data(np.copy(paired_data))
         saver.save(session, model_path+'/GAN', global_step=epoch)
         for batch in range(20):
             current_question = shuffled_q[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
             current_answer = shuffled_a[batch * BATCH_SIZE : (batch+1) * BATCH_SIZE]
 
+            # Train the discriminator
+            for _ in range(5):
+                # print "generate_samples negative"
+                positive_sample = np.hstack((current_question,current_answer))
+                negative_sample = generate_samples(session, generator, current_question, BATCH_SIZE, generated_num)
+                x_batch = np.vstack((positive_sample,negative_sample))
+
+                # Generate labels
+                positive_labels = [[0, 1] for _ in positive_sample]
+                negative_labels = [[1, 0] for _ in negative_sample]
+                y_batch = np.concatenate([positive_labels, negative_labels], 0)
+
+                # Train 3 epoch on the generated data
+                for _ in range(3):
+                    for it in xrange(len(x_batch) // BATCH_SIZE):
+                        # print "discriminator:"
+                        feed = {
+                            discriminator.input_x: x_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
+                            discriminator.input_y: y_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
+                            discriminator.dropout_keep_prob: dis_dropout_keep_prob
+                        }
+                        _ = session.run(discriminator.train_op, feed)
 
             # Train the generator for one step
             # print "generate samples"
@@ -150,29 +172,7 @@ def train():
             # Update roll-out parameters
             # print "rollout update"
             rollout.update_params()
-            # Train the discriminator
 
-            for _ in range(5):
-                # print "generate_samples negative"
-                positive_sample = np.hstack((current_question,current_answer))
-                negative_sample = generate_samples(session, generator, current_question, BATCH_SIZE, generated_num)
-                x_batch = np.vstack((positive_sample,negative_sample))
-
-                # Generate labels
-                positive_labels = [[0, 1] for _ in positive_sample]
-                negative_labels = [[1, 0] for _ in negative_sample]
-                y_batch = np.concatenate([positive_labels, negative_labels], 0)
-
-                # Train 3 epoch on the generated data
-                for _ in range(3):
-                    for it in xrange(len(x_batch) // BATCH_SIZE):
-                        # print "discriminator:"
-                        feed = {
-                            discriminator.input_x: x_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
-                            discriminator.input_y: y_batch[it * BATCH_SIZE : (it+1) * BATCH_SIZE],
-                            discriminator.dropout_keep_prob: dis_dropout_keep_prob
-                        }
-                        _ = session.run(discriminator.train_op, feed)
 
 
 if __name__ == '__main__':
