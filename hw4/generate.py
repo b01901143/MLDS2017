@@ -63,8 +63,8 @@ def generate():
             train_samples = batch
 
         else:
-            total_samples = np.hstack((total_samples,samples))
-            train_samples = np.hstack((train_samples,batch))
+            total_samples = np.vstack((total_samples,samples))
+            train_samples = np.vstack((train_samples,batch))
 
     # save_samples(total_samples ,idx2w=idx2w , sample_path=sample_path+str(epoch)+'.txt')
     save_samples(total_samples ,idx2w=idx2w , sample_path='testing.txt')

@@ -81,13 +81,13 @@ class Generator(object):
             cond=lambda i, _1, _2, _3: i < self.sequence_length,
             body=_g_recurrence_ques,
             loop_vars=(tf.constant(0, dtype=tf.int32),
-                       tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0, gen_x))
+                       tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0, gen_x_test))
 
         def _g_recurrence_test(i, x_t, h_tm1, gen_x):
             h_t = self.g_recurrent_unit(x_t, h_tm1)  # hidden_memory_tuple
             o_t = self.g_output_unit(h_t)  # batch x vocab , logits not prob
             log_prob = tf.log(tf.nn.softmax(o_t))
-            next_token = tf.cast(tf.reshape(tf.argmax(log_prob, 0), [self.batch_size]), tf.int32)
+            next_token = tf.cast(tf.reshape(tf.multinomial(log_prob, 1), [self.batch_size]), tf.int32)
             x_tp1 = tf.nn.embedding_lookup(self.g_embeddings, next_token)  # batch x emb_dim
            
             gen_x = gen_x.write(i, next_token)  # indices, batch_size
@@ -96,7 +96,7 @@ class Generator(object):
         _, _, _, self.gen_x_test = control_flow_ops.while_loop(
             cond=lambda i, _1, _2, _3: i < 2*self.sequence_length,
             body=_g_recurrence_test,
-            loop_vars=(i, x_t, h_tm1, gen_o, self.gen_x_test))
+            loop_vars=(i, x_t, h_tm1, self.gen_x_test))
 
         self.gen_x = self.gen_x.stack()  # seq_length x batch_size
         self.gen_x_test = self.gen_x_test.stack()  # seq_length x batch_size
