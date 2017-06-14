@@ -51,7 +51,7 @@ def generate():
     total_samples = []
     train_samples = []
 
-    for it in xrange(10):#num_batch):
+    for it in xrange(num_batch):
 
         current_question = shuffled_q[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
         current_answer = shuffled_a[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
