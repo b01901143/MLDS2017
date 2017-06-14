@@ -34,11 +34,10 @@ def generate():
     np.random.seed(SEED)
     assert START_TOKEN == 1
 
-    metadata, paired_data = get_paired_data()
+    metadata, paired_data = get_test_data()
     idx2w = metadata['idx2w']
 
 
-    gen_data_loader = Gen_Data_loader(BATCH_SIZE)
     #session and saver
     session = tf.InteractiveSession()
     saver = tf.train.Saver()

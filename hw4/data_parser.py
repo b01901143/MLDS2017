@@ -352,6 +352,16 @@ def get_paired_data():
 
     return metadata, paired_data
 
+def get_test_data():
+    metadata, idx_q, idx_a = load_data()
+    short_ques_index = []
+    for i,ques in enumerate(idx_q):
+        if np.count_nonzero(ques) <= 7:
+            short_ques_index.append(i)
+    paired_data = np.hstack((idx_q,idx_a)).astype(np.int32)
+
+    return metadata, paired_data[short_ques_index]
+
 def shuffle_data(paired_data):
     np.random.shuffle(paired_data)
 
