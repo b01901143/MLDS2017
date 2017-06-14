@@ -88,8 +88,9 @@ class Generator(object):
             o_t = self.g_output_unit(h_t)  # batch x vocab , logits not prob
             log_prob = tf.log(tf.nn.softmax(o_t))
             next_token = tf.cast(tf.reshape(tf.multinomial(log_prob, 1), [self.batch_size]), tf.int32)
+            #next_token = tf.cast(tf.reshape(tf.argmax(log_prob, 1), [self.batch_size]), tf.int32)
             x_tp1 = tf.nn.embedding_lookup(self.g_embeddings, next_token)  # batch x emb_dim
-           
+
             gen_x = gen_x.write(i, next_token)  # indices, batch_size
             return i + 1, x_tp1, h_t, gen_x
 
