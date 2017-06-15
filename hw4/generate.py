@@ -36,38 +36,33 @@ def generate():
 
     metadata, paired_data = get_test_data()
     idx2w = metadata['idx2w']
+    w2idx = metadata['w2idx']
 
+    sample_input = get_sample_input(w2idx, sample_path = 'sample_input.txt')
 
     #session and saver
     session = tf.InteractiveSession()
     saver = tf.train.Saver()
     saver.restore(session, model_path + '/' + args.restore_version)
 
-    shuffled_q, shuffled_a = shuffle_data(np.copy(paired_data))
     num_batch = len(shuffled_q) // BATCH_SIZE
     _time = time.time()
 
     total_samples = []
-    train_samples = []
 
     for it in xrange(num_batch):
 
-        current_question = shuffled_q[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
-        current_answer = shuffled_a[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
-        batch = np.hstack((current_question,current_answer))
+        current_question = sample_input[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
         samples = generator.generate_test(session, current_question)
 
         if it == 0:
             total_samples = samples
-            train_samples = batch
 
         else:
             total_samples = np.vstack((total_samples,samples))
-            train_samples = np.vstack((train_samples,batch))
 
     # save_samples(total_samples ,idx2w=idx2w , sample_path=sample_path+str(epoch)+'.txt')
-    save_samples(total_samples ,idx2w=idx2w , sample_path='testing.txt')
-    save_samples(train_samples ,idx2w=idx2w , sample_path='training_data.txt')
+    save_test_samples(total_samples ,idx2w=idx2w , sample_path='sample_output_RL.txt')
 
 
 

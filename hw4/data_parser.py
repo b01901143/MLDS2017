@@ -333,8 +333,26 @@ def process_data():
     #prepare_seq2seq_files(questions,answers)
 
 
+def get_testing_ques():
+    conv_lines = io.open('testing.txt', encoding='utf-8', errors='ignore').read().split('\n')
+    ques = [ ]
+
+    for line in conv_lines:
+        ques.append(line.split('Q: ')[-1].split('A:')[0])
+
+    with open('sample_input.txt','w') as f:
+        for q in ques:
+
+            f.write(q+'\n')
+
+    # return convs
+
+
+
+
 if __name__ == '__main__':
     process_data()
+    # get_testing_ques()
 
 
 def load_data(PATH=''):
@@ -373,9 +391,6 @@ def shuffle_data(paired_data):
 
     # np.random.shuffle(idx_q)
     # np.random.shuffle(idx_a)
-
-
-
 
 
 
