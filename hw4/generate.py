@@ -62,8 +62,8 @@ def generate():
             total_samples = np.vstack((total_samples,samples))
 
     # save_samples(total_samples ,idx2w=idx2w , sample_path=sample_path+str(epoch)+'.txt')
-    save_test_samples(total_samples ,idx2w=idx2w , sample_path='sample_output_RL.txt')
-    save_samples(total_samples ,idx2w=idx2w , sample_path='sample_output_RL_all.txt')
+    save_test_samples(total_samples ,idx2w=idx2w , sample_path= args.output_file)
+    save_samples(total_samples ,idx2w=idx2w , sample_path='all_'+args.output_file)
 
 
 
