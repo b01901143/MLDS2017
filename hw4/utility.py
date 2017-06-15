@@ -17,7 +17,7 @@ def generate_samples(sess, trainable_model, current_question, batch_size, genera
     return np.asarray(generated_samples, dtype = np.int32)
 def save_samples(current_answer,idx2w , sample_path):
     def id2sen (sentence , dic = idx2w):
-        s="Q: " 
+        s="Q: "
         for id in sentence:
             w = dic[id]
             if w == '<eoq>':
@@ -26,7 +26,7 @@ def save_samples(current_answer,idx2w , sample_path):
             if w != '<pad>' and w!='<unk>':
                 s+=( w +' ')
         return s
-    
+
     QA = [ id2sen(sentence)for sentence in current_answer]
     with open(sample_path,'w') as f:
         for qa in QA:
@@ -35,7 +35,7 @@ def save_samples(current_answer,idx2w , sample_path):
 
 def save_test_samples(current_answer,idx2w , sample_path):
     def id2sen (sentence , dic = idx2w):
-        s="" 
+        s=""
         start = False
         for id in sentence:
             w = dic[id]
@@ -45,7 +45,7 @@ def save_test_samples(current_answer,idx2w , sample_path):
             if w != '<pad>' and w!='<unk>' and start:
                 s+=( w +' ')
         return s
-    
+
     QA = [ id2sen(sentence)for sentence in current_answer]
     with open(sample_path,'w') as f:
         for qa in QA:
@@ -108,21 +108,21 @@ def pre_train_epoch(sess, trainable_model, shuffled_q, shuffled_a ):
     num_batch = len(shuffled_q) // BATCH_SIZE
     _time = time.time()
     for it in xrange(num_batch):
-        
+
         current_question = shuffled_q[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
         current_answer = shuffled_a[it * BATCH_SIZE : (it+1) * BATCH_SIZE]
         batch = np.hstack((current_question,current_answer))
         _, g_loss = trainable_model.pretrain_step(sess, batch, current_question)
         supervised_g_losses.append(g_loss)
         if it % 100 == 0:
-            
+
             print "batch:"+str(it)+" loss:"+str(g_loss)+" time taken:"+str(int(time.time()-_time))+'        \r',
             sys.stdout.flush()
             _time = time.time()
-     
+
 
     return np.mean(supervised_g_losses)
-    
+
 def build_glove_embed(id2word):
     def parseWord(line):
         _line=line.split()
@@ -132,7 +132,7 @@ def build_glove_embed(id2word):
         return word , embed
     embed = np.random.standard_normal(size=(vocab_size,EMB_DIM) )
     embed_glove ,wordtoix, ixtoword = {}, {} , {}
-    
+
     ixtoword[0], ixtoword[1], ixtoword[2] = '<pad>', '<bos>' , '<eos>'
     wordtoix['<pad>'], wordtoix['<bos>'], wordtoix['<eos>'] = 0, 1, 2
     f_in = open(glove_txt_path, 'r')
@@ -146,7 +146,7 @@ def build_glove_embed(id2word):
             print "parsing glove: " + str(id) +'\r',
             sys.stdout.flush()
 
-    
+
     #extract label's embedding
     for i, key in enumerate(id2word):
         ix = wordtoix.get(key)
@@ -177,4 +177,4 @@ class Timer:
 if __name__ == '__main__':
     dic = ['is','happy']
     build_glove_embed(dic)
-    
+

@@ -45,7 +45,7 @@ def generate():
     saver = tf.train.Saver()
     saver.restore(session, model_path + '/' + args.restore_version)
 
-    num_batch = len(shuffled_q) // BATCH_SIZE
+    num_batch = len(sample_input) // BATCH_SIZE
     _time = time.time()
 
     total_samples = []
@@ -63,6 +63,7 @@ def generate():
 
     # save_samples(total_samples ,idx2w=idx2w , sample_path=sample_path+str(epoch)+'.txt')
     save_test_samples(total_samples ,idx2w=idx2w , sample_path='sample_output_RL.txt')
+    save_samples(total_samples ,idx2w=idx2w , sample_path='sample_output_RL_all.txt')
 
 
 
