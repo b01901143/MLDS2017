@@ -1,8 +1,8 @@
 #########################################################################################
 #  Generator  Hyper-parameters
 ######################################################################################
-EMB_DIM = 256 # embedding dimension
-HIDDEN_DIM = 256 # hidden state dimension of lstm cell
+EMB_DIM = 512 # embedding dimension
+HIDDEN_DIM = 512 # hidden state dimension of lstm cell
 SEQ_LENGTH = 20 # sequence length
 START_TOKEN = 1
 PRE_EPOCH_NUM = 20 # supervise (maximum likelihood estimation) epochs
