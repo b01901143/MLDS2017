@@ -1,6 +1,0 @@
-
-FlappyBird.py  : change frame_size to train more
-
-python2  game/wrapped_flappy_bird.py :  line 221,222   range change to xrange  (if something wrong)
-
-python FlappyBird.py
