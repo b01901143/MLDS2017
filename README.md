@@ -7,3 +7,9 @@
 # Hw2
     Video caption, generate a sequence of caption from a given video stream
     run: sh run.sh <testing_id_file> <feature_path>
+# Hw3
+    Image generation, generate images from given texts utilizing GAN
+# Hw4
+    Chatbot, utilizing seq2seq GAN
+# Final
+    Alphago on atari games, utilizing DQN
